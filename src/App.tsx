@@ -5,6 +5,7 @@ import type { KDSOrder } from './types';
 import { useKDSStore } from './stores/kdsStore';
 import { useSessionStore } from './stores/sessionStore';
 import OrderCard from './components/OrderCard';
+import OrderList from './components/OrderList';
 import StatusBar from './components/StatusBar';
 import PrintTicket from './components/PrintTicket';
 import RestaurantLogin from './components/RestaurantLogin';
@@ -13,11 +14,12 @@ import AdminPage from './components/AdminPage';
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
 function KDSApp() {
-  const { restaurantCode, restaurantName, login, logout } = useSessionStore();
+  const { restaurantCode, restaurantName, login, logout, viewMode, setViewMode } = useSessionStore();
   const {
     printOrder,
     setOrders, addOrder, updateOrderStatus, cancelOrder,
     setConnected, setPrintOrder,
+    setMenuDisplayConfig,
     filteredOrders, orderCounts,
     filter, setFilter,
     connected,
@@ -35,8 +37,23 @@ function KDSApp() {
     }
   };
 
+  // 메뉴 표시 설정 로딩
+  const fetchMenuDisplayConfig = async (code: string) => {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/menu-display/${code.toLowerCase()}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setMenuDisplayConfig(data);
+    } catch (err) {
+      console.warn('[KDS] Could not fetch menu display config:', err);
+    }
+  };
+
   useEffect(() => {
     if (!restaurantCode) return;
+
+    // 로그인 시 메뉴 표시 설정 로드
+    fetchMenuDisplayConfig(restaurantCode);
 
     socket.on('connect', () => {
       setConnected(true);
@@ -115,6 +132,8 @@ function KDSApp() {
         filter={filter}
         onFilterChange={setFilter}
         onLogout={handleLogout}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
       <div className="no-print px-6 py-4 flex items-center justify-between">
@@ -128,6 +147,12 @@ function KDSApp() {
             <div className="text-5xl mb-4">🍽️</div>
             <div className="text-lg">No orders yet</div>
           </div>
+        ) : viewMode === 'list' ? (
+          <OrderList
+            orders={filtered}
+            onUpdateStatus={handleUpdateStatus}
+            onPrint={handlePrint}
+          />
         ) : (
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map(order => (

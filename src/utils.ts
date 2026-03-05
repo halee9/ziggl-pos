@@ -1,4 +1,4 @@
-import type { OrderSource } from './types';
+import type { OrderSource, MenuDisplayItem, ModifierDisplayItem } from './types';
 
 export function formatMoney(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
@@ -31,6 +31,34 @@ export function detectSource(squareSourceName?: string): OrderSource {
   if (name.includes('square online') || name.includes('online store')) return 'Square Online';
   if (name.includes('kiosk') || name.includes('point of sale') || name.includes('pos')) return 'Kiosk';
   return 'Unknown';
+}
+
+// ─── Menu Display 유틸 ───────────────────────────────────────────────────────
+
+/** 메뉴 항목: 약어 + 배경색/글씨색 반환 (설정 없으면 풀네임 + 기본 색상) */
+export function getItemDisplay(
+  itemName: string,
+  menuDisplay: MenuDisplayItem[]
+): { label: string; bgColor: string; textColor: string } {
+  const config = menuDisplay.find(
+    (m) => m.item_name.toLowerCase() === itemName.toLowerCase()
+  );
+  return {
+    label:     config?.abbreviation || itemName,
+    bgColor:   config?.bg_color     || '#F3F4F6',
+    textColor: config?.text_color   || '#111827',
+  };
+}
+
+/** 모디파이어: 약어 반환 (설정 없으면 원래 이름) */
+export function getModifierDisplay(
+  modifierName: string,
+  modifierDisplay: ModifierDisplayItem[]
+): string {
+  const config = modifierDisplay.find(
+    (m) => m.modifier_name.toLowerCase() === modifierName.toLowerCase()
+  );
+  return config?.abbreviation || modifierName;
 }
 
 export const SOURCE_COLORS: Record<OrderSource, string> = {

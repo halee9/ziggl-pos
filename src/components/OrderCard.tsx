@@ -2,7 +2,8 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { KDSOrder } from '../types';
-import { formatMoney, formatTime, formatElapsed, getElapsedMinutes } from '../utils';
+import { formatMoney, formatTime, formatElapsed, getElapsedMinutes, getItemDisplay, getModifierDisplay } from '../utils';
+import { useKDSStore } from '../stores/kdsStore';
 
 interface Props {
   order: KDSOrder;
@@ -30,6 +31,8 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
   const elapsed = getElapsedMinutes(order.createdAt);
   const isUrgent = elapsed >= 15 && order.status === 'OPEN';
   const pickupTime = formatPickupAt(order.pickupAt);
+  const { menuDisplayConfig } = useKDSStore();
+  const { menuItems, modifiers: modifierDisplay } = menuDisplayConfig;
 
   return (
     <Card className={`flex flex-col gap-0 overflow-hidden transition-all border-2
@@ -81,22 +84,34 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
 
       {/* Line items */}
       <CardContent className="flex flex-col gap-2 px-4 py-3 border-t border-border">
-        {order.lineItems.map((item, idx) => (
-          <div key={idx}>
-            <div className="flex items-baseline gap-1 text-sm">
-              <span className="font-bold min-w-[1.5rem]">{item.quantity}×</span>
-              <span className="font-medium">{item.name}</span>
-              {item.variationName && (
-                <span className="text-muted-foreground text-xs">({item.variationName})</span>
+        {order.lineItems.map((item, idx) => {
+          const display = getItemDisplay(item.name, menuItems);
+          return (
+            <div key={idx}>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="font-bold text-sm min-w-[1.5rem]">{item.quantity}×</span>
+                <span
+                  className="px-2 py-0.5 rounded font-bold text-sm"
+                  style={{ backgroundColor: display.bgColor, color: display.textColor }}
+                >
+                  {display.label}
+                </span>
+                {item.variationName && (
+                  <span className="text-muted-foreground text-xs">({item.variationName})</span>
+                )}
+              </div>
+              {item.modifiers && item.modifiers.length > 0 && (
+                <div className="ml-6 mt-0.5 flex flex-wrap gap-1">
+                  {item.modifiers.map((mod, mIdx) => (
+                    <span key={mIdx} className="text-xs bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
+                      {getModifierDisplay(mod, modifierDisplay)}
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
-            {item.modifiers && item.modifiers.length > 0 && (
-              <div className="ml-6 text-xs text-muted-foreground">
-                + {item.modifiers.join(', ')}
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
         {order.note && (
           <div className="mt-1 text-xs text-yellow-200 bg-yellow-900/30 border border-yellow-800/40 rounded px-2 py-1">
             📝 {order.note}

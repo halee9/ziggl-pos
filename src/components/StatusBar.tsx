@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import type { ViewMode } from '../stores/sessionStore';
 
 interface Props {
   connected: boolean;
@@ -9,6 +10,8 @@ interface Props {
   filter: 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'READY' | 'COMPLETED';
   onFilterChange: (f: 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'READY' | 'COMPLETED') => void;
   onLogout: () => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
 }
 
 const FILTERS = [
@@ -19,7 +22,7 @@ const FILTERS = [
   { key: 'COMPLETED' as const,   label: 'Done' },
 ];
 
-export default function StatusBar({ connected, restaurantName, orderCounts, filter, onFilterChange, onLogout }: Props) {
+export default function StatusBar({ connected, restaurantName, orderCounts, filter, onFilterChange, onLogout, viewMode, onViewModeChange }: Props) {
   const getCount = (key: typeof FILTERS[number]['key']) => {
     if (key === 'ALL') return orderCounts.open + orderCounts.inProgress + orderCounts.ready + orderCounts.completed;
     if (key === 'OPEN') return orderCounts.open;
@@ -62,8 +65,30 @@ export default function StatusBar({ connected, restaurantName, orderCounts, filt
         })}
       </div>
 
-      {/* 날짜 + 로그아웃 */}
-      <div className="flex items-center gap-3 min-w-32 justify-end">
+      {/* 뷰 토글 + 날짜 + 로그아웃 */}
+      <div className="flex items-center gap-2 min-w-32 justify-end">
+        <div className="flex items-center rounded-md border border-border overflow-hidden">
+          <Button
+            variant={viewMode === 'card' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => onViewModeChange('card')}
+            className="h-7 px-2 text-xs rounded-none border-0"
+            title="Card view"
+          >
+            ⊞
+          </Button>
+          <Separator orientation="vertical" className="h-4" />
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => onViewModeChange('list')}
+            className="h-7 px-2 text-xs rounded-none border-0"
+            title="List view"
+          >
+            ☰
+          </Button>
+        </div>
+        <Separator orientation="vertical" className="h-4" />
         <span className="text-xs text-muted-foreground hidden sm:block">
           {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
         </span>

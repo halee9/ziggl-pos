@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { KDSOrder, OrderStatus } from '../types';
+import type { KDSOrder, OrderStatus, MenuDisplayConfig } from '../types';
 
 type FilterType = 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'READY' | 'COMPLETED';
 
@@ -9,6 +9,7 @@ interface KDSState {
   filter: FilterType;
   connected: boolean;
   printOrder: KDSOrder | null;
+  menuDisplayConfig: MenuDisplayConfig;
 
   // 주문 액션
   setOrders: (orders: KDSOrder[]) => void;
@@ -20,6 +21,7 @@ interface KDSState {
   setFilter: (filter: FilterType) => void;
   setConnected: (connected: boolean) => void;
   setPrintOrder: (order: KDSOrder | null) => void;
+  setMenuDisplayConfig: (config: MenuDisplayConfig) => void;
 
   // 파생 상태
   filteredOrders: () => KDSOrder[];
@@ -31,6 +33,7 @@ export const useKDSStore = create<KDSState>()((set, get) => ({
   filter: 'ALL',
   connected: false,
   printOrder: null,
+  menuDisplayConfig: { menuItems: [], modifiers: [] },
 
   setOrders: (orders) => set({ orders }),
 
@@ -55,6 +58,7 @@ export const useKDSStore = create<KDSState>()((set, get) => ({
   setFilter: (filter) => set({ filter }),
   setConnected: (connected) => set({ connected }),
   setPrintOrder: (printOrder) => set({ printOrder }),
+  setMenuDisplayConfig: (menuDisplayConfig) => set({ menuDisplayConfig }),
 
   filteredOrders: () => {
     const { orders, filter } = get();

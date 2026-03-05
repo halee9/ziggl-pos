@@ -5,6 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import type { RestaurantConfig } from './AdminPage';
+import MenuDisplayEditor from './MenuDisplayEditor';
+
+type TabKey = 'settings' | 'menu-display';
 
 interface Props {
   config: RestaurantConfig;
@@ -15,6 +18,7 @@ interface Props {
 
 export default function AdminDashboard({ config, pin, onSaved, onLogout }: Props) {
   const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+  const [activeTab, setActiveTab] = useState<TabKey>('settings');
 
   const [name, setName] = useState(config.name);
   const [taxRate, setTaxRate] = useState((config.tax_rate * 100).toFixed(2));
@@ -92,7 +96,37 @@ export default function AdminDashboard({ config, pin, onSaved, onLogout }: Props
         </div>
       </div>
 
+      {/* 탭 네비게이션 */}
+      <div className="border-b border-border px-6">
+        <div className="flex gap-1">
+          {([
+            { key: 'settings', label: '⚙️ Settings' },
+            { key: 'menu-display', label: '🎨 Menu Display' },
+          ] as { key: TabKey; label: string }[]).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === key
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="max-w-xl mx-auto px-6 py-8">
+
+        {/* Menu Display 탭 */}
+        {activeTab === 'menu-display' && (
+          <MenuDisplayEditor restaurantCode={config.restaurant_code} pin={pin} />
+        )}
+
+        {/* Settings 탭 */}
+        {activeTab === 'settings' && (
         <form onSubmit={handleSave} className="flex flex-col gap-6">
 
           {/* Restaurant Info */}
@@ -179,6 +213,7 @@ export default function AdminDashboard({ config, pin, onSaved, onLogout }: Props
             {saving ? 'Saving...' : 'Save Settings'}
           </Button>
         </form>
+        )}
       </div>
     </div>
   );
