@@ -74,6 +74,9 @@ function KDSApp() {
     socket.on('order:cancelled', ({ id }: { id: string }) => {
       cancelOrder(id);
     });
+    socket.on('menu-display:updated', (config: { menuItems: unknown[]; modifiers: unknown[] }) => {
+      setMenuDisplayConfig(config as Parameters<typeof setMenuDisplayConfig>[0]);
+    });
 
     if (socket.connected) {
       setConnected(true);
@@ -88,6 +91,7 @@ function KDSApp() {
       socket.off('order:new');
       socket.off('order:updated');
       socket.off('order:cancelled');
+      socket.off('menu-display:updated');
     };
   }, [restaurantCode]);
 

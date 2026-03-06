@@ -113,11 +113,23 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
           const d = await res.json();
           errMsg = d.error || errMsg;
         } catch {
-          // response was not JSON (e.g., HTML error page)
           errMsg = `Server returned ${res.status} (non-JSON response)`;
         }
         setErrorMsg(errMsg);
         return;
+      }
+
+      // 서버 응답으로 로컬 상태 동기화 (id 포함 최신 데이터)
+      const data = await res.json();
+      if (data.menuItems) {
+        const menuMap: Record<string, MenuDisplayItem> = {};
+        (data.menuItems as MenuDisplayItem[]).forEach((m) => { menuMap[m.item_name] = m; });
+        setMenuConfig(menuMap);
+      }
+      if (data.modifiers) {
+        const modMap: Record<string, ModifierDisplayItem> = {};
+        (data.modifiers as ModifierDisplayItem[]).forEach((m) => { modMap[m.modifier_name] = m; });
+        setModifierConfig(modMap);
       }
       setSuccessMsg('Menu display settings saved!');
     } finally {
