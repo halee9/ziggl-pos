@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLogin from './AdminLogin';
 import AdminDashboard from './AdminDashboard';
 
@@ -15,9 +15,28 @@ export interface RestaurantConfig {
   session_timeout_minutes: number;
 }
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+
 export default function AdminPage() {
   const [config, setConfig] = useState<RestaurantConfig | null>(null);
   const [pin, setPin] = useState('');
+
+  // 테스트용 자동 로그인: /admin?code=midori&pin=1234
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const autoCode = params.get('code');
+    const autoPin  = params.get('pin');
+    if (!autoCode || !autoPin) return;
+
+    fetch(`${SERVER_URL}/api/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: autoCode, pin: autoPin }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((cfg) => { if (cfg) { setConfig(cfg); setPin(autoPin); } })
+      .catch(() => {});
+  }, []);
 
   const handleLogin = (cfg: RestaurantConfig, enteredPin: string) => {
     setConfig(cfg);
