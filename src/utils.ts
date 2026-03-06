@@ -41,7 +41,7 @@ export function getItemDisplay(
   menuDisplay: MenuDisplayItem[]
 ): { label: string; bgColor: string; textColor: string } {
   const config = menuDisplay.find(
-    (m) => m.item_name.toLowerCase() === itemName.toLowerCase()
+    (m) => m.item_name.toLowerCase().trim() === itemName.toLowerCase().trim()
   );
   return {
     label:     config?.abbreviation || itemName,
@@ -56,7 +56,7 @@ export function getModifierDisplay(
   modifierDisplay: ModifierDisplayItem[]
 ): string {
   const config = modifierDisplay.find(
-    (m) => m.modifier_name.toLowerCase() === modifierName.toLowerCase()
+    (m) => m.modifier_name.toLowerCase().trim() === modifierName.toLowerCase().trim()
   );
   return config?.abbreviation || modifierName;
 }
