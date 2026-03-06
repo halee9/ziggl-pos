@@ -35,30 +35,36 @@ export function detectSource(squareSourceName?: string): OrderSource {
 
 // ─── Menu Display 유틸 ───────────────────────────────────────────────────────
 
-/** 메뉴 항목: 약어 + 배경색/글씨색 반환 (설정 없으면 풀네임 + 기본 색상) */
+/** 메뉴 항목: 약어 + 배경색/글씨색 + KDS 표시 여부 + 서버 경고 반환 */
 export function getItemDisplay(
   itemName: string,
   menuDisplay: MenuDisplayItem[]
-): { label: string; bgColor: string; textColor: string } {
+): { label: string; bgColor: string; textColor: string; showOnKds: boolean; serverAlert: boolean } {
   const config = menuDisplay.find(
     (m) => m.item_name.toLowerCase().trim() === itemName.toLowerCase().trim()
   );
   return {
-    label:     config?.abbreviation || itemName,
-    bgColor:   config?.bg_color     || '#F3F4F6',
-    textColor: config?.text_color   || '#111827',
+    label:       config?.abbreviation || itemName,
+    bgColor:     config?.bg_color     || '#F3F4F6',
+    textColor:   config?.text_color   || '#111827',
+    showOnKds:   config?.show_on_kds  ?? true,
+    serverAlert: config?.server_alert ?? false,
   };
 }
 
-/** 모디파이어: 약어 반환 (설정 없으면 원래 이름) */
+/** 모디파이어: 약어 + KDS 표시 여부 + 서버 경고 반환 */
 export function getModifierDisplay(
   modifierName: string,
   modifierDisplay: ModifierDisplayItem[]
-): string {
+): { label: string; showOnKds: boolean; serverAlert: boolean } {
   const config = modifierDisplay.find(
     (m) => m.modifier_name.toLowerCase().trim() === modifierName.toLowerCase().trim()
   );
-  return config?.abbreviation || modifierName;
+  return {
+    label:       config?.abbreviation || modifierName,
+    showOnKds:   config?.show_on_kds  ?? true,
+    serverAlert: config?.server_alert ?? false,
+  };
 }
 
 export const SOURCE_COLORS: Record<OrderSource, string> = {

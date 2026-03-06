@@ -86,6 +86,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
       <CardContent className="flex flex-col gap-2 px-4 py-3 border-t border-border">
         {order.lineItems.map((item, idx) => {
           const display = getItemDisplay(item.name, menuItems);
+          if (!display.showOnKds) return null;
           return (
             <div key={idx}>
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -95,6 +96,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
                   style={{ backgroundColor: display.bgColor, color: display.textColor }}
                 >
                   {display.label}
+                  {display.serverAlert && <span className="ml-1 text-red-500 text-xs">⚠</span>}
                 </span>
                 {item.variationName && (
                   <span className="text-muted-foreground text-xs">({item.variationName})</span>
@@ -102,11 +104,16 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
               </div>
               {item.modifiers && item.modifiers.length > 0 && (
                 <div className="ml-6 mt-0.5 flex flex-wrap gap-1">
-                  {item.modifiers.map((mod, mIdx) => (
-                    <span key={mIdx} className="text-xs bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-                      {getModifierDisplay(mod, modifierDisplay)}
-                    </span>
-                  ))}
+                  {item.modifiers.map((mod, mIdx) => {
+                    const modDisplay = getModifierDisplay(mod, modifierDisplay);
+                    if (!modDisplay.showOnKds) return null;
+                    return (
+                      <span key={mIdx} className="text-xs bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
+                        {modDisplay.label}
+                        {modDisplay.serverAlert && <span className="ml-0.5 text-red-400">⚠</span>}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>

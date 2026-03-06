@@ -72,17 +72,17 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
     load();
   }, [restaurantCode]);
 
-  const updateMenuItem = (itemName: string, field: keyof MenuDisplayItem, value: string) => {
+  const updateMenuItem = (itemName: string, field: keyof MenuDisplayItem, value: string | boolean) => {
     setMenuConfig((prev) => ({
       ...prev,
       [itemName]: { ...prev[itemName], restaurant_code: restaurantCode, item_name: itemName, [field]: value },
     }));
   };
 
-  const updateModifier = (modifierName: string, value: string) => {
+  const updateModifierField = (modifierName: string, field: keyof ModifierDisplayItem, value: string | boolean) => {
     setModifierConfig((prev) => ({
       ...prev,
-      [modifierName]: { ...prev[modifierName], restaurant_code: restaurantCode, modifier_name: modifierName, abbreviation: value },
+      [modifierName]: { ...prev[modifierName], restaurant_code: restaurantCode, modifier_name: modifierName, [field]: value },
     }));
   };
 
@@ -92,8 +92,13 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
     setErrorMsg('');
     let res: Response | null = null;
     try {
-      const menuItems = Object.values(menuConfig).filter((m) => m.abbreviation || m.bg_color || m.text_color);
-      const modifiers = Object.values(modifierConfig).filter((m) => m.abbreviation);
+      // show_on_kds=false 또는 server_alert=true인 항목도 포함해서 저장
+      const menuItems = Object.values(menuConfig).filter(
+        (m) => m.abbreviation || m.bg_color || m.text_color || m.show_on_kds === false || m.server_alert === true
+      );
+      const modifiers = Object.values(modifierConfig).filter(
+        (m) => m.abbreviation || m.show_on_kds === false || m.server_alert === true
+      );
 
       res = await fetch(`${SERVER_URL}/api/menu-display/${restaurantCode.toLowerCase()}`, {
         method: 'PUT',
@@ -220,6 +225,27 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
                       className="h-6 w-20 text-xs"
                     />
                   </div>
+                  {/* 토글: Show on KDS / Server Alert */}
+                  <div className="flex items-center gap-4 flex-wrap pl-1">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cfg.show_on_kds ?? true}
+                        onChange={(e) => updateMenuItem(item.name, 'show_on_kds', e.target.checked)}
+                        className="w-3.5 h-3.5"
+                      />
+                      <span className="text-xs text-muted-foreground">Show on KDS</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cfg.server_alert ?? false}
+                        onChange={(e) => updateMenuItem(item.name, 'server_alert', e.target.checked)}
+                        className="w-3.5 h-3.5 accent-red-500"
+                      />
+                      <span className="text-xs text-red-400 font-medium">Server Alert ⚠</span>
+                    </label>
+                  </div>
                 </div>
               );
             })
@@ -237,15 +263,16 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
           {allModifiers.length === 0 ? (
             <p className="text-sm text-muted-foreground">No modifiers found from Square Catalog.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="flex flex-col gap-2">
               {allModifiers.map((mod) => {
                 const cfg = modifierConfig[mod.name] ?? {};
                 return (
-                  <div key={mod.id} className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground flex-1 truncate">{mod.name}</span>
+                  <div key={mod.id} className="flex items-center gap-2 flex-wrap border border-border rounded px-2 py-1.5">
+                    <span className="text-sm text-muted-foreground flex-1 truncate min-w-[8rem]">{mod.name}</span>
+                    {/* 약어 입력 */}
                     <Input
                       value={cfg.abbreviation ?? ''}
-                      onChange={(e) => updateModifier(mod.name, e.target.value)}
+                      onChange={(e) => updateModifierField(mod.name, 'abbreviation', e.target.value)}
                       maxLength={6}
                       placeholder={mod.name.slice(0, 5)}
                       className="h-7 w-20 text-xs shrink-0"
@@ -255,6 +282,25 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
                         {cfg.abbreviation}
                       </span>
                     )}
+                    {/* 토글: Show on KDS / Server Alert */}
+                    <label className="flex items-center gap-1 cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={cfg.show_on_kds ?? true}
+                        onChange={(e) => updateModifierField(mod.name, 'show_on_kds', e.target.checked)}
+                        className="w-3.5 h-3.5"
+                      />
+                      <span className="text-xs text-muted-foreground">KDS</span>
+                    </label>
+                    <label className="flex items-center gap-1 cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={cfg.server_alert ?? false}
+                        onChange={(e) => updateModifierField(mod.name, 'server_alert', e.target.checked)}
+                        className="w-3.5 h-3.5 accent-red-500"
+                      />
+                      <span className="text-xs text-red-400">⚠</span>
+                    </label>
                   </div>
                 );
               })}

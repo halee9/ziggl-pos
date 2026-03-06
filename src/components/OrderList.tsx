@@ -64,7 +64,10 @@ export default function OrderList({ orders, onUpdateStatus, onPrint }: Props) {
             <div className="flex-1 flex flex-wrap gap-1 items-center min-w-0">
               {order.lineItems.map((item, idx) => {
                 const display = getItemDisplay(item.name, menuItems);
-                const modAbbrs = (item.modifiers ?? []).map((m) => getModifierDisplay(m, modifierDisplay));
+                if (!display.showOnKds) return null;
+                const modChips = (item.modifiers ?? [])
+                  .map((m) => getModifierDisplay(m, modifierDisplay))
+                  .filter((d) => d.showOnKds);
                 return (
                   <span key={idx} className="flex items-center gap-1">
                     {Number(item.quantity) > 1 && (
@@ -75,10 +78,11 @@ export default function OrderList({ orders, onUpdateStatus, onPrint }: Props) {
                       style={{ backgroundColor: display.bgColor, color: display.textColor }}
                     >
                       {display.label}
+                      {display.serverAlert && <span className="ml-0.5 text-red-500">⚠</span>}
                     </span>
-                    {modAbbrs.length > 0 && (
+                    {modChips.length > 0 && (
                       <span className="text-xs text-muted-foreground">
-                        [{modAbbrs.join(' ')}]
+                        [{modChips.map((d) => d.serverAlert ? `⚠${d.label}` : d.label).join(' ')}]
                       </span>
                     )}
                   </span>

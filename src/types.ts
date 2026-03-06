@@ -10,6 +10,8 @@ export interface MenuDisplayItem {
   abbreviation?: string;
   bg_color?: string;
   text_color?: string;
+  show_on_kds?: boolean;  // false면 KDS 화면에서 숨김 (default: true)
+  server_alert?: boolean; // true면 출력 티켓 하단에 확인 요망 표시 (default: false)
 }
 
 export interface ModifierDisplayItem {
@@ -18,6 +20,8 @@ export interface ModifierDisplayItem {
   square_modifier_id?: string;
   modifier_name: string;
   abbreviation?: string;
+  show_on_kds?: boolean;  // false면 KDS 화면에서 숨김 (default: true)
+  server_alert?: boolean; // true면 출력 티켓 하단에 확인 요망 표시 (default: false)
 }
 
 export interface MenuDisplayConfig {
