@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { socket } from './socket';
 import type { KDSOrder } from './types';
@@ -24,6 +24,7 @@ function KDSApp() {
     connected,
     orders,
     scheduledActivationMinutes,
+    autoStartOrders,
   } = useKDSStore();
 
   const [activeTab, setActiveTab] = useState<'kitchen' | 'done'>('kitchen');
@@ -118,6 +119,39 @@ function KDSApp() {
     }
   };
 
+  // ── 자동시작: OPEN 비예약 주문 즉시 IN_PROGRESS ─────────────────────────────
+  // useRef로 이미 처리한 주문 추적 (중복 실행 방지)
+  const autoStartedRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!autoStartOrders || !restaurantCode) return;
+    const toStart = orders.filter(
+      (o) => o.status === 'OPEN' && !o.isScheduled && !autoStartedRef.current.has(o.id)
+    );
+    toStart.forEach((o) => {
+      autoStartedRef.current.add(o.id);
+      handleUpdateStatus(o.id, 'IN_PROGRESS');
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders, autoStartOrders]);
+
+  // ── 예약 주문 자동 활성화 (30초마다 체크) ────────────────────────────────────
+  useEffect(() => {
+    if (!restaurantCode) return;
+    const toActivate = orders.filter(
+      (o) =>
+        o.status === 'OPEN' &&
+        o.isScheduled &&
+        (new Date(o.pickupAt).getTime() - now) / 60_000 <= scheduledActivationMinutes &&
+        !autoStartedRef.current.has(o.id)
+    );
+    toActivate.forEach((o) => {
+      autoStartedRef.current.add(o.id);
+      handleUpdateStatus(o.id, 'IN_PROGRESS');
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [now]);
+
   const handlePrint = (order: KDSOrder) => {
     setPrintOrder(order);
     setTimeout(() => { window.print(); setPrintOrder(null); }, 100);
@@ -136,30 +170,31 @@ function KDSApp() {
   const minutesUntil = (pickupAt: string) =>
     (new Date(pickupAt).getTime() - now) / 60_000;
 
-  // 지금 당장 조리해야 할 주문
-  const activeOrders = orders.filter((o) =>
-    o.status === 'IN_PROGRESS' ||
-    (o.status === 'OPEN' && (
-      !o.isScheduled || minutesUntil(o.pickupAt) <= scheduledActivationMinutes
-    ))
+  // 왼쪽 패널: 조리 중인 주문만
+  const activeOrders = orders.filter((o) => o.status === 'IN_PROGRESS');
+
+  // 오른쪽 패널 상단: 미시작 주문 (OPEN — 비예약 + 예약 대기)
+  const incomingOrders = orders.filter((o) => o.status === 'OPEN');
+
+  // 오른쪽 패널 하단: 완료된 주문 (READY + COMPLETED)
+  const doneOrders = orders.filter((o) =>
+    o.status === 'READY' || o.status === 'COMPLETED'
   );
 
-  // 픽업 시간이 threshold보다 먼 예약 주문 (대기)
+  // 카드뷰 예약 대기 스트립용 (픽업까지 아직 여유 있는 예약 주문)
   const pendingOrders = orders.filter((o) =>
     o.status === 'OPEN' &&
     o.isScheduled &&
     minutesUntil(o.pickupAt) > scheduledActivationMinutes
   );
 
-  // 완료된 주문 (별도 탭)
-  const doneOrders = orders.filter((o) =>
-    o.status === 'READY' || o.status === 'COMPLETED'
-  );
-
-  const displayOrders = activeTab === 'kitchen' ? activeOrders : doneOrders;
+  // 카드뷰에서 표시할 주문 목록
+  const displayOrders = activeTab === 'kitchen'
+    ? orders.filter((o) => o.status === 'OPEN' || o.status === 'IN_PROGRESS')
+    : doneOrders;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background max-w-[1024px] mx-auto">
       {printOrder && <PrintTicket order={printOrder} />}
 
       <StatusBar
@@ -168,7 +203,7 @@ function KDSApp() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         kitchenCount={activeOrders.length}
-        pendingCount={pendingOrders.length}
+        pendingCount={incomingOrders.length}
         doneCount={doneOrders.length}
         onLogout={handleLogout}
         viewMode={viewMode}
@@ -181,20 +216,21 @@ function KDSApp() {
       )}
 
       <div className={`flex-1 min-h-0 ${viewMode === 'list' ? 'overflow-hidden' : 'px-4 pb-4 overflow-auto'}`}>
-        {displayOrders.length === 0 ? (
+        {viewMode === 'list' ? (
+          <OrderList
+            activeOrders={activeOrders}
+            incomingOrders={incomingOrders}
+            doneOrders={doneOrders}
+            onUpdateStatus={handleUpdateStatus}
+            onPrint={handlePrint}
+          />
+        ) : displayOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
             <div className="text-5xl mb-4">🍽️</div>
             <div className="text-lg">
               {activeTab === 'kitchen' ? 'No active orders' : 'No completed orders'}
             </div>
           </div>
-        ) : viewMode === 'list' ? (
-          <OrderList
-            activeOrders={activeOrders}
-            doneOrders={doneOrders}
-            onUpdateStatus={handleUpdateStatus}
-            onPrint={handlePrint}
-          />
         ) : (
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {displayOrders.map(order => (

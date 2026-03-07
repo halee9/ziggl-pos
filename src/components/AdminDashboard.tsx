@@ -20,7 +20,11 @@ interface Props {
 export default function AdminDashboard({ config, pin, onSaved, onLogout }: Props) {
   const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
   const [activeTab, setActiveTab] = useState<TabKey>('settings');
-  const { scheduledActivationMinutes, setScheduledActivationMinutes, sectionSeparation, setSectionSeparation } = useKDSStore();
+  const {
+    scheduledActivationMinutes, setScheduledActivationMinutes,
+    sectionSeparation, setSectionSeparation,
+    autoStartOrders, setAutoStartOrders,
+  } = useKDSStore();
   const [activationInput, setActivationInput] = useState(String(scheduledActivationMinutes));
 
   const [name, setName] = useState(config.name);
@@ -257,6 +261,26 @@ export default function AdminDashboard({ config, pin, onSaved, onLogout }: Props
                 >
                   <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform
                     ${sectionSeparation ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm">주문 자동 시작</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    새 주문 수신 시 즉시 IN_PROGRESS 처리 (기본값: ON)
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={autoStartOrders}
+                  onClick={() => setAutoStartOrders(!autoStartOrders)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors
+                    ${autoStartOrders ? 'bg-primary' : 'bg-input'}`}
+                >
+                  <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform
+                    ${autoStartOrders ? 'translate-x-5' : 'translate-x-0'}`} />
                 </button>
               </div>
             </CardContent>
