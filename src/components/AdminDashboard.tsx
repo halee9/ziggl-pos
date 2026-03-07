@@ -20,7 +20,7 @@ interface Props {
 export default function AdminDashboard({ config, pin, onSaved, onLogout }: Props) {
   const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
   const [activeTab, setActiveTab] = useState<TabKey>('settings');
-  const { scheduledActivationMinutes, setScheduledActivationMinutes } = useKDSStore();
+  const { scheduledActivationMinutes, setScheduledActivationMinutes, sectionSeparation, setSectionSeparation } = useKDSStore();
   const [activationInput, setActivationInput] = useState(String(scheduledActivationMinutes));
 
   const [name, setName] = useState(config.name);
@@ -238,6 +238,26 @@ export default function AdminDashboard({ config, pin, onSaved, onLogout }: Props
                 <p className="text-xs text-muted-foreground">
                   픽업 시간 N분 전부터 Kitchen 탭 메인에 표시. 이전까지는 Upcoming 스트립에 대기. (기본값: 20분)
                 </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm">리스트뷰 섹션 분리</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    IN-STORE / PICKUP & DELIVERY 구역 분리 (기본값: ON)
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={sectionSeparation}
+                  onClick={() => setSectionSeparation(!sectionSeparation)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors
+                    ${sectionSeparation ? 'bg-primary' : 'bg-input'}`}
+                >
+                  <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform
+                    ${sectionSeparation ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
               </div>
             </CardContent>
           </Card>

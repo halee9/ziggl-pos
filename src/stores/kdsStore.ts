@@ -5,6 +5,7 @@ type FilterType = 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'READY' | 'COMPLETED';
 
 const ACTIVATION_KEY = 'kds_activation_minutes';
 const DEFAULT_ACTIVATION = 20;
+const SEP_KEY = 'kds_section_separation';
 
 interface KDSState {
   // 상태
@@ -16,6 +17,7 @@ interface KDSState {
 
   // KDS 설정 (localStorage 영속화)
   scheduledActivationMinutes: number;
+  sectionSeparation: boolean;
 
   // 주문 액션
   setOrders: (orders: KDSOrder[]) => void;
@@ -29,6 +31,7 @@ interface KDSState {
   setPrintOrder: (order: KDSOrder | null) => void;
   setMenuDisplayConfig: (config: MenuDisplayConfig) => void;
   setScheduledActivationMinutes: (minutes: number) => void;
+  setSectionSeparation: (v: boolean) => void;
 
   // 파생 상태
   filteredOrders: () => KDSOrder[];
@@ -42,6 +45,7 @@ export const useKDSStore = create<KDSState>()((set, get) => ({
   printOrder: null,
   menuDisplayConfig: { menuItems: [], modifiers: [] },
   scheduledActivationMinutes: parseInt(localStorage.getItem(ACTIVATION_KEY) ?? String(DEFAULT_ACTIVATION)),
+  sectionSeparation: localStorage.getItem(SEP_KEY) !== 'false',
 
   setOrders: (orders) => set({ orders }),
 
@@ -71,6 +75,11 @@ export const useKDSStore = create<KDSState>()((set, get) => ({
   setScheduledActivationMinutes: (minutes) => {
     localStorage.setItem(ACTIVATION_KEY, String(minutes));
     set({ scheduledActivationMinutes: minutes });
+  },
+
+  setSectionSeparation: (v) => {
+    localStorage.setItem(SEP_KEY, String(v));
+    set({ sectionSeparation: v });
   },
 
   filteredOrders: () => {

@@ -180,7 +180,7 @@ function KDSApp() {
         <PendingStrip orders={pendingOrders} now={now} />
       )}
 
-      <div className="flex-1 px-4 pb-4">
+      <div className={`flex-1 min-h-0 ${viewMode === 'list' ? 'overflow-hidden' : 'px-4 pb-4 overflow-auto'}`}>
         {displayOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
             <div className="text-5xl mb-4">🍽️</div>
@@ -190,7 +190,8 @@ function KDSApp() {
           </div>
         ) : viewMode === 'list' ? (
           <OrderList
-            orders={displayOrders}
+            activeOrders={activeOrders}
+            doneOrders={doneOrders}
             onUpdateStatus={handleUpdateStatus}
             onPrint={handlePrint}
           />

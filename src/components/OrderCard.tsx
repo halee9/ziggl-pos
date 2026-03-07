@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { KDSOrder } from '../types';
-import { formatMoney, formatElapsed, formatTime, getElapsedMinutes, getItemDisplay, getModifierDisplay, mergeLineItems } from '../utils';
+import { formatMoney, formatElapsed, getElapsedMinutes, getItemDisplay, getModifierDisplay, mergeLineItems } from '../utils';
 import { useKDSStore } from '../stores/kdsStore';
 
 interface Props {
