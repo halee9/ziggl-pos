@@ -87,38 +87,32 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
           const display = getItemDisplay(item.name, menuItems);
           if (!display.showOnKds) return null;
           return (
-            <div key={idx}>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-black text-lg min-w-[2rem]">{item.quantity}×</span>
-                <span
-                  className="px-2.5 py-1 rounded-md font-bold text-lg leading-tight"
-                  style={{ backgroundColor: display.bgColor, color: display.textColor }}
-                >
-                  {display.label}
-                  {display.serverAlert && (
-                    <AlertTriangle className="inline ml-1.5 h-3.5 w-3.5 text-red-500" />
-                  )}
-                </span>
-                {item.variationName && (
-                  <span className="text-muted-foreground text-sm">({item.variationName})</span>
+            <div key={idx} className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-black text-lg min-w-[2rem]">{item.quantity}×</span>
+              <span
+                className="px-2.5 py-1 rounded-md font-bold text-lg leading-tight"
+                style={{ backgroundColor: display.bgColor, color: display.textColor }}
+              >
+                {display.label}
+                {display.serverAlert && (
+                  <AlertTriangle className="inline ml-1.5 h-3.5 w-3.5 text-red-500" />
                 )}
-              </div>
-              {item.modifiers && item.modifiers.length > 0 && (
-                <div className="ml-7 mt-1 flex flex-wrap gap-1">
-                  {item.modifiers.map((mod, mIdx) => {
-                    const modDisplay = getModifierDisplay(mod, modifierDisplay);
-                    if (!modDisplay.showOnKds) return null;
-                    return (
-                      <span key={mIdx} className="text-base bg-muted px-2 py-0.5 rounded text-muted-foreground flex items-center gap-1">
-                        {modDisplay.label}
-                        {modDisplay.serverAlert && (
-                          <AlertTriangle className="h-3 w-3 text-red-400" />
-                        )}
-                      </span>
-                    );
-                  })}
-                </div>
+              </span>
+              {item.variationName && (
+                <span className="text-muted-foreground text-sm">({item.variationName})</span>
               )}
+              {item.modifiers?.map((mod, mIdx) => {
+                const modDisplay = getModifierDisplay(mod, modifierDisplay);
+                if (!modDisplay.showOnKds) return null;
+                return (
+                  <span key={mIdx} className="text-base bg-muted px-2 py-0.5 rounded text-muted-foreground flex items-center gap-1">
+                    {modDisplay.label}
+                    {modDisplay.serverAlert && (
+                      <AlertTriangle className="h-3 w-3 text-red-400" />
+                    )}
+                  </span>
+                );
+              })}
             </div>
           );
         })}
