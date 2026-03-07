@@ -1,4 +1,4 @@
-import type { OrderSource, MenuDisplayItem, ModifierDisplayItem } from './types';
+import type { OrderSource, MenuDisplayItem, ModifierDisplayItem, OrderLineItem } from './types';
 
 export function formatMoney(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
@@ -65,6 +65,33 @@ export function getModifierDisplay(
     showOnKds:   config?.show_on_kds  ?? true,
     serverAlert: config?.server_alert ?? false,
   };
+}
+
+/**
+ * 이름 + variationName + 모디파이어 조합이 완전히 동일한 라인아이템을 병합.
+ * 수량(quantity)과 금액(totalMoney)은 합산, 나머지 필드는 첫 항목 기준.
+ */
+export function mergeLineItems(items: OrderLineItem[]): OrderLineItem[] {
+  const map = new Map<string, OrderLineItem>();
+
+  for (const item of items) {
+    // 모디파이어는 정렬해서 순서 차이를 무시
+    const modKey = [...(item.modifiers ?? [])].sort().join('\x00');
+    const key = `${item.name}\x00${item.variationName ?? ''}\x00${modKey}`;
+
+    const existing = map.get(key);
+    if (existing) {
+      map.set(key, {
+        ...existing,
+        quantity:   String(Number(existing.quantity) + Number(item.quantity)),
+        totalMoney: existing.totalMoney + item.totalMoney,
+      });
+    } else {
+      map.set(key, { ...item });
+    }
+  }
+
+  return Array.from(map.values());
 }
 
 export const SOURCE_COLORS: Record<OrderSource, string> = {
