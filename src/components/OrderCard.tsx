@@ -1,4 +1,4 @@
-import { Truck, Calendar, Clock, AlertTriangle, FileText, Printer, Check, CheckCheck } from 'lucide-react';
+import { Truck, Calendar, Clock, AlertTriangle, FileText, Printer, Check, CheckCheck, ChevronLeft } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -140,7 +140,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
           </Button>
         </div>
 
-        {/* Row 2: action button */}
+        {/* Row 2: backward + forward buttons */}
         <div className="px-5 pb-4 pt-2 w-full">
           {order.status === 'OPEN' && (
             <Button
@@ -151,24 +151,54 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
             </Button>
           )}
           {order.status === 'IN_PROGRESS' && (
-            <Button
-              className="w-full h-11 rounded-lg font-bold text-base bg-green-600 hover:bg-green-500 border-0"
-              onClick={() => onUpdateStatus(order.id, 'READY')}
-            >
-              <Check className="mr-2 h-4 w-4" /> Ready
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="h-11 w-11 rounded-lg p-0 shrink-0"
+                onClick={() => onUpdateStatus(order.id, 'OPEN')}
+                title="Back to Open"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                className="flex-1 h-11 rounded-lg font-bold text-base bg-green-600 hover:bg-green-500 border-0"
+                onClick={() => onUpdateStatus(order.id, 'READY')}
+              >
+                <Check className="mr-2 h-4 w-4" /> Ready
+              </Button>
+            </div>
           )}
           {order.status === 'READY' && (
-            <Button
-              className="w-full h-11 rounded-lg font-bold text-base bg-blue-600 hover:bg-blue-500 border-0"
-              onClick={() => onUpdateStatus(order.id, 'COMPLETED')}
-            >
-              <CheckCheck className="mr-2 h-4 w-4" /> Complete
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="h-11 w-11 rounded-lg p-0 shrink-0"
+                onClick={() => onUpdateStatus(order.id, 'IN_PROGRESS')}
+                title="Back to In Progress"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                className="flex-1 h-11 rounded-lg font-bold text-base bg-blue-600 hover:bg-blue-500 border-0"
+                onClick={() => onUpdateStatus(order.id, 'COMPLETED')}
+              >
+                <CheckCheck className="mr-2 h-4 w-4" /> Complete
+              </Button>
+            </div>
           )}
           {order.status === 'COMPLETED' && (
-            <div className="flex items-center justify-center gap-1.5 py-1 text-green-400 font-bold text-sm">
-              <Check className="h-4 w-4" /> Done
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="h-11 w-11 rounded-lg p-0 shrink-0"
+                onClick={() => onUpdateStatus(order.id, 'READY')}
+                title="Back to Ready"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex-1 flex items-center justify-center gap-1.5 text-green-400 font-bold text-sm">
+                <Check className="h-4 w-4" /> Done
+              </div>
             </div>
           )}
         </div>
