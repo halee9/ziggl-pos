@@ -151,36 +151,38 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
           </Button>
         </div>
 
-        {/* Row 2: action button */}
-        {order.status === 'OPEN' && (
-          <Button
-            className="w-full h-11 rounded-none font-bold text-base bg-yellow-500 hover:bg-yellow-400 text-black border-0"
-            onClick={() => onUpdateStatus(order.id, 'IN_PROGRESS')}
-          >
-            Start
-          </Button>
-        )}
-        {order.status === 'IN_PROGRESS' && (
-          <Button
-            className="w-full h-11 rounded-none font-bold text-base bg-green-600 hover:bg-green-500 border-0"
-            onClick={() => onUpdateStatus(order.id, 'READY')}
-          >
-            <Check className="mr-2 h-4 w-4" /> Ready
-          </Button>
-        )}
-        {order.status === 'READY' && (
-          <Button
-            className="w-full h-11 rounded-none font-bold text-base bg-blue-600 hover:bg-blue-500 border-0"
-            onClick={() => onUpdateStatus(order.id, 'COMPLETED')}
-          >
-            <CheckCheck className="mr-2 h-4 w-4" /> Complete
-          </Button>
-        )}
-        {order.status === 'COMPLETED' && (
-          <div className="flex items-center justify-center gap-1.5 py-2.5 text-green-400 font-bold text-sm">
-            <Check className="h-4 w-4" /> Done
-          </div>
-        )}
+        {/* Row 2: action button (px-5 pb-4 so it matches card padding) */}
+        <div className="px-5 pb-4 pt-2">
+          {order.status === 'OPEN' && (
+            <Button
+              className="w-full h-11 rounded-lg font-bold text-base bg-yellow-500 hover:bg-yellow-400 text-black border-0"
+              onClick={() => onUpdateStatus(order.id, 'IN_PROGRESS')}
+            >
+              Start
+            </Button>
+          )}
+          {order.status === 'IN_PROGRESS' && (
+            <Button
+              className="w-full h-11 rounded-lg font-bold text-base bg-green-600 hover:bg-green-500 border-0"
+              onClick={() => onUpdateStatus(order.id, 'READY')}
+            >
+              <Check className="mr-2 h-4 w-4" /> Ready
+            </Button>
+          )}
+          {order.status === 'READY' && (
+            <Button
+              className="w-full h-11 rounded-lg font-bold text-base bg-blue-600 hover:bg-blue-500 border-0"
+              onClick={() => onUpdateStatus(order.id, 'COMPLETED')}
+            >
+              <CheckCheck className="mr-2 h-4 w-4" /> Complete
+            </Button>
+          )}
+          {order.status === 'COMPLETED' && (
+            <div className="flex items-center justify-center gap-1.5 py-1 text-green-400 font-bold text-sm">
+              <Check className="h-4 w-4" /> Done
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
