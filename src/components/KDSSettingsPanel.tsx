@@ -39,7 +39,7 @@ export default function KDSSettingsPanel({ open, onClose }: Props) {
 
   return (
     <>
-      {/* 백드롭 */}
+      {/* Backdrop */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
@@ -47,13 +47,13 @@ export default function KDSSettingsPanel({ open, onClose }: Props) {
         />
       )}
 
-      {/* 슬라이드 패널 */}
+      {/* Slide panel */}
       <div
         className={`fixed top-0 right-0 bottom-0 z-50 w-72 bg-card border-l border-border flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* 헤더 */}
+        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <span className="font-bold text-base">KDS Settings</span>
           <button
@@ -64,12 +64,12 @@ export default function KDSSettingsPanel({ open, onClose }: Props) {
           </button>
         </div>
 
-        {/* 설정 항목 */}
+        {/* Settings items */}
         <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-5">
 
-          {/* 예약 주문 활성화 */}
+          {/* Scheduled order activation */}
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-semibold">예약 주문 활성화</span>
+            <span className="text-sm font-semibold">Scheduled Order Activation</span>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -79,7 +79,7 @@ export default function KDSSettingsPanel({ open, onClose }: Props) {
                 onChange={(e) => setActivationInput(e.target.value)}
                 className="w-20 bg-background border border-border rounded px-2 py-1 text-sm text-center tabular-nums"
               />
-              <span className="text-sm text-muted-foreground">분 전</span>
+              <span className="text-sm text-muted-foreground">min before</span>
               <button
                 className="ml-auto text-xs px-2 py-1 rounded bg-primary text-primary-foreground font-semibold hover:opacity-80 transition-opacity"
                 onClick={() => {
@@ -91,26 +91,26 @@ export default function KDSSettingsPanel({ open, onClose }: Props) {
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              픽업 시간 N분 전부터 활성화 (기본: 20분)
+              Show scheduled orders N minutes before pickup time. (Default: 20 min)
             </p>
           </div>
 
           <div className="h-px bg-border/60" />
 
-          {/* 섹션 분리 */}
+          {/* Section separation */}
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold">섹션 분리</p>
-              <p className="text-xs text-muted-foreground mt-0.5">IN-STORE / PICKUP 구역 분리</p>
+              <p className="text-sm font-semibold">Section Separation</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Split IN-STORE and PICKUP areas</p>
             </div>
             <Toggle checked={sectionSeparation} onChange={() => setSectionSeparation(!sectionSeparation)} />
           </div>
 
-          {/* IN-STORE 섹션 높이 슬라이더 (섹션 분리 ON일 때만) */}
+          {/* IN-STORE section height slider (only when section separation is ON) */}
           {sectionSeparation && (
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">IN-STORE 높이</span>
+                <span className="text-sm font-semibold">IN-STORE Height</span>
                 <span className="text-sm font-black tabular-nums text-primary">{inStoreSplitPct}%</span>
               </div>
               <input
@@ -123,22 +123,22 @@ export default function KDSSettingsPanel({ open, onClose }: Props) {
                 className="w-full accent-primary"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>IN-STORE ↑</span>
-                <span>PICKUP ↑</span>
+                <span>More IN-STORE ↑</span>
+                <span>More PICKUP ↑</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                구분선을 직접 드래그해도 조절 가능
+                You can also drag the divider directly on the screen.
               </p>
             </div>
           )}
 
           <div className="h-px bg-border/60" />
 
-          {/* 주문 자동 시작 */}
+          {/* Auto-start orders */}
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold">주문 자동 시작</p>
-              <p className="text-xs text-muted-foreground mt-0.5">새 주문 수신 즉시 IN_PROGRESS 처리</p>
+              <p className="text-sm font-semibold">Auto-Start Orders</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Move new orders to IN PROGRESS immediately</p>
             </div>
             <Toggle checked={autoStartOrders} onChange={() => setAutoStartOrders(!autoStartOrders)} />
           </div>
