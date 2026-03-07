@@ -1,5 +1,4 @@
 import { Truck, Calendar, Clock, AlertTriangle, FileText, Printer, Check, CheckCheck } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { KDSOrder } from '../types';
@@ -35,20 +34,26 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
   const { menuDisplayConfig } = useKDSStore();
   const { menuItems, modifiers: modifierDisplay } = menuDisplayConfig;
 
+  /* ── outer border colour ── */
+  const borderCls =
+    order.status === 'COMPLETED'  ? 'opacity-50 border-border' :
+    isUrgent                       ? 'border-red-500 shadow-lg shadow-red-900/40' :
+    order.status === 'IN_PROGRESS' ? 'border-yellow-400' :
+    order.status === 'READY'       ? 'border-green-400' :
+                                     'border-border';
+
+  /* ── header background ── */
+  const headerBg =
+    isUrgent                       ? 'bg-red-500/10' :
+    order.status === 'IN_PROGRESS' ? 'bg-yellow-500/10' :
+    order.status === 'READY'       ? 'bg-green-500/10' :
+                                     '';
+
   return (
-    <Card className={`flex flex-col gap-0 overflow-hidden transition-all border-2
-      ${order.status === 'COMPLETED' ? 'opacity-50 border-border' : ''}
-      ${order.status === 'IN_PROGRESS' ? 'border-yellow-400' : ''}
-      ${order.status === 'READY' ? 'border-green-400' : ''}
-      ${order.status === 'OPEN' && !isUrgent ? 'border-border' : ''}
-      ${isUrgent ? 'border-red-500 shadow-lg shadow-red-900/40' : ''}
-    `}>
-      {/* Header — source + #ID + 고객이름 + elapsed */}
-      <CardHeader className={`flex flex-row items-center justify-between px-4 py-2.5 space-y-0
-        ${order.status === 'IN_PROGRESS' ? 'bg-yellow-500/10' : ''}
-        ${order.status === 'READY' ? 'bg-green-500/10' : ''}
-        ${isUrgent ? 'bg-red-500/10' : ''}
-      `}>
+    <div className={`bg-card text-card-foreground flex flex-col overflow-hidden rounded-xl border-2 shadow-sm transition-all ${borderCls}`}>
+
+      {/* ── Header ── */}
+      <div className={`flex flex-row items-center justify-between px-5 py-3.5 ${headerBg}`}>
         <div className="flex items-center gap-2 flex-wrap min-w-0">
           <Badge className={`shrink-0 ${SOURCE_VARIANT[order.source] ?? SOURCE_VARIANT['Unknown']}`}>
             {order.source}
@@ -79,10 +84,10 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
             </div>
           )}
         </div>
-      </CardHeader>
+      </div>
 
-      {/* Line items */}
-      <CardContent className="flex flex-col gap-2 px-4 py-3 border-t border-border">
+      {/* ── Line items ── */}
+      <div className="flex flex-col gap-3 px-5 py-4 border-t border-border">
         {order.lineItems.map((item, idx) => {
           const display = getItemDisplay(item.name, menuItems);
           if (!display.showOnKds) return null;
@@ -128,12 +133,12 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
             {order.note}
           </div>
         )}
-      </CardContent>
+      </div>
 
-      {/* Footer — 금액 + 프린트 / 전체 너비 액션 버튼 */}
-      <CardFooter className="flex flex-col gap-0 p-0 border-t border-border">
-        {/* 1행: 금액 + 프린트 */}
-        <div className="flex items-center px-4 py-2 bg-muted/20">
+      {/* ── Footer ── */}
+      <div className="flex flex-col border-t border-border">
+        {/* Row 1: price + print */}
+        <div className="flex items-center px-5 py-3 bg-muted/20">
           <span className="font-bold text-base flex-1">{formatMoney(order.totalMoney)}</span>
           <Button
             variant="ghost"
@@ -146,7 +151,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
           </Button>
         </div>
 
-        {/* 2행: 전체 너비 액션 버튼 */}
+        {/* Row 2: action button */}
         {order.status === 'OPEN' && (
           <Button
             className="w-full h-11 rounded-none font-bold text-base bg-yellow-500 hover:bg-yellow-400 text-black border-0"
@@ -176,7 +181,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
             <Check className="h-4 w-4" /> Done
           </div>
         )}
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
