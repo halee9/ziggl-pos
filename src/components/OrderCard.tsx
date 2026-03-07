@@ -36,7 +36,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
   const { menuItems, modifiers: modifierDisplay } = menuDisplayConfig;
 
   return (
-    <Card className={`flex flex-col gap-0 overflow-hidden transition-all border-2
+    <Card className={`flex flex-col gap-0 py-0 overflow-hidden transition-all border-2
       ${order.status === 'COMPLETED' ? 'opacity-50 border-border' : ''}
       ${order.status === 'IN_PROGRESS' ? 'border-yellow-400' : ''}
       ${order.status === 'READY' ? 'border-green-400' : ''}
