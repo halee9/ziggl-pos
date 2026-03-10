@@ -19,7 +19,7 @@ const URGENCY_TIME: Record<Urgency, string> = {
   0: 'text-green-400',
   1: 'text-yellow-400',
   2: 'text-orange-400',
-  3: 'text-red-400 animate-pulse',
+  3: 'text-red-400',
 };
 
 interface Props {
@@ -326,7 +326,7 @@ function ActiveOrderRow({
         <span className="text-sm font-semibold text-blue-300 shrink-0">
           {order.displayName}
         </span>
-        <span className={`text-sm font-bold tabular-nums shrink-0 transition-colors ${URGENCY_TIME[urgency]}`}>
+        <span className={`text-sm font-bold tabular-nums shrink-0 transition-colors ${URGENCY_TIME[urgency]}${!isFinished && urgency === 3 ? ' animate-pulse' : ''}`}>
           {timeLabel}
         </span>
         <button
