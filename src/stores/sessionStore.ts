@@ -1,15 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type ViewMode = 'card' | 'list';
+export type KDSTab = 'active' | 'scheduled' | 'ready' | 'done';
 
 interface SessionState {
   restaurantCode: string | null;
   restaurantName: string;
-  viewMode: ViewMode;
+  activeTab: KDSTab;
   login: (code: string, name: string) => void;
   logout: () => void;
-  setViewMode: (mode: ViewMode) => void;
+  setActiveTab: (tab: KDSTab) => void;
 }
 
 export const useSessionStore = create<SessionState>()(
@@ -17,18 +17,17 @@ export const useSessionStore = create<SessionState>()(
     (set) => ({
       restaurantCode: null,
       restaurantName: '',
-      viewMode: 'card',
+      activeTab: 'active',
       login: (code, name) => set({ restaurantCode: code, restaurantName: name }),
       logout: () => set({ restaurantCode: null, restaurantName: '' }),
-      setViewMode: (viewMode) => set({ viewMode }),
+      setActiveTab: (activeTab) => set({ activeTab }),
     }),
     {
       name: 'kds-session',
-      // restaurantCode, restaurantName, viewMode를 localStorage에 저장
       partialize: (state) => ({
         restaurantCode: state.restaurantCode,
         restaurantName: state.restaurantName,
-        viewMode: state.viewMode,
+        activeTab: state.activeTab,
       }),
     }
   )

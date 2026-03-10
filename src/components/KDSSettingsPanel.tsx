@@ -38,10 +38,8 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 export default function KDSSettingsPanel({ open, onClose }: Props) {
   const {
     scheduledActivationMinutes, setScheduledActivationMinutes,
-    sectionSeparation, setSectionSeparation,
     autoStartOrders, setAutoStartOrders,
     autoPrint, setAutoPrint,
-    inStoreSplitPct, setInStoreSplitPct,
     urgencyYellowMin, setUrgencyYellowMin,
     urgencyOrangeMin, setUrgencyOrangeMin,
     urgencyRedMin,    setUrgencyRedMin,
@@ -113,43 +111,6 @@ export default function KDSSettingsPanel({ open, onClose }: Props) {
               Show scheduled orders N minutes before pickup time. (Default: 20 min)
             </p>
           </div>
-
-          <div className="h-px bg-border/60" />
-
-          {/* Section separation */}
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold">Section Separation</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Split IN-STORE and PICKUP areas</p>
-            </div>
-            <Toggle checked={sectionSeparation} onChange={() => setSectionSeparation(!sectionSeparation)} />
-          </div>
-
-          {/* IN-STORE section height slider (only when section separation is ON) */}
-          {sectionSeparation && (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">IN-STORE Height</span>
-                <span className="text-sm font-black tabular-nums text-primary">{inStoreSplitPct}%</span>
-              </div>
-              <input
-                type="range"
-                min={10}
-                max={90}
-                step={5}
-                value={inStoreSplitPct}
-                onChange={(e) => setInStoreSplitPct(Number(e.target.value))}
-                className="w-full accent-primary"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>More IN-STORE ↑</span>
-                <span>More PICKUP ↑</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                You can also drag the divider directly on the screen.
-              </p>
-            </div>
-          )}
 
           <div className="h-px bg-border/60" />
 
