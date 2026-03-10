@@ -30,6 +30,16 @@ export function formatElapsed(isoString: string): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
+/** 두 고정 timestamp 사이의 소요시간 포맷 (준비 완료 주문 표시용) */
+export function formatDuration(fromIso: string, toIso: string): string {
+  const mins = Math.max(0, Math.floor((new Date(toIso).getTime() - new Date(fromIso).getTime()) / 60000));
+  if (mins < 1) return '<1m';
+  if (mins < 60) return `${mins}m`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
 export function detectSource(squareSourceName?: string): OrderSource {
   if (!squareSourceName) return 'Unknown';
   const name = squareSourceName.toLowerCase();

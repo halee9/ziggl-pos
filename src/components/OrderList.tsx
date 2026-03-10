@@ -1,25 +1,12 @@
 import React from 'react';
 import { CornerUpLeft, Printer, Check, Info, X } from 'lucide-react';
 import type { KDSOrder, OrderStatus } from '../types';
-import { getItemDisplay, getModifierDisplay, mergeLineItems, formatElapsed, getElapsedMinutes } from '../utils';
+import { getItemDisplay, getModifierDisplay, mergeLineItems, formatElapsed, formatDuration, getElapsedMinutes } from '../utils';
 import { useKDSStore } from '../stores/kdsStore';
 import { useSessionStore } from '../stores/sessionStore';
 
 // ── 경과 시간 긴급도 ───────────────────────────────────────────────────────
 type Urgency = 0 | 1 | 2 | 3;
-
-function getUrgency(
-  isoString: string,
-  yellow: number,
-  orange: number,
-  red: number,
-): Urgency {
-  const mins = getElapsedMinutes(isoString);
-  if (mins >= red)    return 3;
-  if (mins >= orange) return 2;
-  if (mins >= yellow) return 1;
-  return 0;
-}
 
 const URGENCY_BAR: Record<Urgency, string> = {
   0: 'bg-green-500',
@@ -172,13 +159,21 @@ function ActiveOrderRow({
 
   const sourceBadge = SOURCE_VARIANT[order.source] ?? SOURCE_VARIANT['Unknown'];
 
-  // 긴급도 — startedAt 기준 (없으면 createdAt 폴백), 임계값은 store에서
-  const urgency = getUrgency(
-    order.startedAt ?? order.createdAt,
-    urgencyYellowMin,
-    urgencyOrangeMin,
-    urgencyRedMin,
-  );
+  // 시간 표시 & 긴급도 계산
+  // - READY/COMPLETED: startedAt → readyAt 고정 소요시간 (prep 완료 후 정지)
+  // - OPEN/IN_PROGRESS: startedAt → 지금(live)
+  const startIso = order.startedAt ?? order.createdAt;
+  const isFinished = (order.status === 'READY' || order.status === 'COMPLETED') && !!order.readyAt;
+  const urgencyMins = isFinished
+    ? Math.max(0, Math.floor((new Date(order.readyAt!).getTime() - new Date(startIso).getTime()) / 60000))
+    : getElapsedMinutes(startIso);
+  const urgency: Urgency =
+    urgencyMins >= urgencyRedMin    ? 3 :
+    urgencyMins >= urgencyOrangeMin ? 2 :
+    urgencyMins >= urgencyYellowMin ? 1 : 0;
+  const timeLabel = isFinished
+    ? formatDuration(startIso, order.readyAt!)
+    : formatElapsed(startIso);
 
   // 아이템별 완료 카운트 (로컬) — idx → 완료된 수량
   const [doneCounts, setDoneCounts] = React.useState<Map<number, number>>(new Map());
@@ -331,7 +326,7 @@ function ActiveOrderRow({
           {order.displayName}
         </span>
         <span className={`text-sm font-bold tabular-nums shrink-0 transition-colors ${URGENCY_TIME[urgency]}`}>
-          {formatElapsed(order.startedAt ?? order.createdAt)}
+          {timeLabel}
         </span>
         <button
           className="no-print opacity-50 hover:opacity-90 transition-opacity pointer-events-auto"
