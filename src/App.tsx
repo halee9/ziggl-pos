@@ -5,6 +5,7 @@ import type { KDSOrder } from './types';
 import { useKDSStore } from './stores/kdsStore';
 import { useSessionStore } from './stores/sessionStore';
 import StatusBar from './components/StatusBar';
+import OrderList from './components/OrderList';
 import SilentPrintTicket from './components/SilentPrintTicket';
 import RestaurantLogin from './components/RestaurantLogin';
 import AdminPage from './components/AdminPage';
@@ -17,7 +18,7 @@ import DoneTabView from './components/DoneTabView';
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
 function KDSApp() {
-  const { restaurantCode, restaurantName, login, logout, activeTab, setActiveTab } = useSessionStore();
+  const { restaurantCode, restaurantName, login, logout, activeTab, setActiveTab, viewMode, setViewMode } = useSessionStore();
   const {
     setOrders, addOrder, updateOrderStatus, cancelOrder,
     setConnected,
@@ -210,40 +211,57 @@ function KDSApp() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         counts={counts}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
         onLogout={handleLogout}
         onSettings={() => setSettingsOpen(true)}
       />
 
-      <div className="flex-1 min-h-0 overflow-hidden">
-        {activeTab === 'active' && (
-          <ActiveTabView
-            orders={activeOrders}
+      <div className={`flex-1 min-h-0 ${viewMode === 'list' ? 'overflow-hidden' : 'overflow-auto'}`}>
+        {viewMode === 'list' ? (
+          // ── 리스트 뷰 (기본) ────────────────────────────────────────────────
+          <OrderList
+            activeOrders={activeOrders}
+            scheduledOrders={scheduledOrders}
+            readyOrders={readyOrders}
+            completedOrders={completedOrders}
             onUpdateStatus={handleUpdateStatus}
             onPrint={handlePrint}
           />
-        )}
-        {activeTab === 'scheduled' && (
-          <ScheduledTabView
-            orders={scheduledOrders}
-            now={now}
-            scheduledActivationMinutes={scheduledActivationMinutes}
-            onUpdateStatus={handleUpdateStatus}
-            onPrint={handlePrint}
-          />
-        )}
-        {activeTab === 'ready' && (
-          <ReadyTabView
-            orders={readyOrders}
-            onUpdateStatus={handleUpdateStatus}
-            onPrint={handlePrint}
-          />
-        )}
-        {activeTab === 'done' && (
-          <DoneTabView
-            orders={completedOrders}
-            onUpdateStatus={handleUpdateStatus}
-            onPrint={handlePrint}
-          />
+        ) : (
+          // ── 카드 뷰 ─────────────────────────────────────────────────────────
+          <div className="px-4 pb-4 pt-2 h-full overflow-auto">
+            {activeTab === 'active' && (
+              <ActiveTabView
+                orders={activeOrders}
+                onUpdateStatus={handleUpdateStatus}
+                onPrint={handlePrint}
+              />
+            )}
+            {activeTab === 'scheduled' && (
+              <ScheduledTabView
+                orders={scheduledOrders}
+                now={now}
+                scheduledActivationMinutes={scheduledActivationMinutes}
+                onUpdateStatus={handleUpdateStatus}
+                onPrint={handlePrint}
+              />
+            )}
+            {activeTab === 'ready' && (
+              <ReadyTabView
+                orders={readyOrders}
+                onUpdateStatus={handleUpdateStatus}
+                onPrint={handlePrint}
+              />
+            )}
+            {activeTab === 'done' && (
+              <DoneTabView
+                orders={completedOrders}
+                onUpdateStatus={handleUpdateStatus}
+                onPrint={handlePrint}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>

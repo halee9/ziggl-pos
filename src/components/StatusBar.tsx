@@ -1,8 +1,8 @@
-import { Settings, X } from 'lucide-react';
+import { LayoutGrid, List, Settings, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import type { KDSTab } from '../stores/sessionStore';
+import type { KDSTab, ViewMode } from '../stores/sessionStore';
 
 interface Props {
   connected: boolean;
@@ -10,6 +10,8 @@ interface Props {
   activeTab: KDSTab;
   onTabChange: (tab: KDSTab) => void;
   counts: { active: number; scheduled: number; ready: number; done: number };
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
   onLogout: () => void;
   onSettings: () => void;
 }
@@ -17,7 +19,8 @@ interface Props {
 export default function StatusBar({
   connected, restaurantName,
   activeTab, onTabChange,
-  counts, onLogout, onSettings,
+  counts, viewMode, onViewModeChange,
+  onLogout, onSettings,
 }: Props) {
   const tabCls = (tab: KDSTab) =>
     `flex items-center gap-1.5 px-3 py-2 rounded text-sm font-bold transition-colors ${
@@ -80,8 +83,30 @@ export default function StatusBar({
         </button>
       </div>
 
-      {/* 날짜 + 설정 + 로그아웃 */}
+      {/* 뷰 토글 + 날짜 + 설정 + 로그아웃 */}
       <div className="flex items-center gap-2 min-w-24 justify-end flex-shrink-0">
+        <div className="flex items-center rounded-md border border-border overflow-hidden">
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => onViewModeChange('list')}
+            className="h-8 px-2.5 rounded-none border-0"
+            title="List view"
+          >
+            <List className="h-5 w-5" />
+          </Button>
+          <Separator orientation="vertical" className="h-5" />
+          <Button
+            variant={viewMode === 'card' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => onViewModeChange('card')}
+            className="h-8 px-2.5 rounded-none border-0"
+            title="Card view"
+          >
+            <LayoutGrid className="h-5 w-5" />
+          </Button>
+        </div>
+        <Separator orientation="vertical" className="h-5" />
         <span className="text-xs text-muted-foreground hidden sm:block">
           {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
         </span>
