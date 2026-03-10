@@ -119,6 +119,14 @@ export function TicketContent({ order, menuItems, modifiers: modifierList }: {
           <p className="font-bold">NOTE: {order.note}</p>
         </>
       )}
+
+      {/* ── Delivery Note ── */}
+      {order.deliveryNote && (
+        <>
+          <hr className="border-black my-2" />
+          <p className="font-bold text-gray-500">DELIVERY: {order.deliveryNote}</p>
+        </>
+      )}
     </div>
   );
 }

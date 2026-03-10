@@ -53,6 +53,7 @@ export interface KDSOrder {
   lineItems: OrderLineItem[];
   totalMoney: number; // cents
   note?: string;
+  deliveryNote?: string;  // 배달 앱 배달 지시 (DoorDash/Uber Eats/Grubhub)
   subtotal?: number;    // cents (optional — not all order sources provide it)
   tax?: number;         // cents
   createdAt: string;
