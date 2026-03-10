@@ -274,148 +274,6 @@ function ActiveOrderRow({
   );
 }
 
-// ── 오른쪽 패널 상단: 미시작(OPEN) 주문 compact 행 ───────────────────────────
-function IncomingOrderRow({
-  order,
-  onUpdateStatus,
-}: {
-  order: KDSOrder;
-  onUpdateStatus: Props['onUpdateStatus'];
-}) {
-  const { menuDisplayConfig } = useKDSStore();
-  const { menuItems } = menuDisplayConfig;
-
-  const items = mergeLineItems(order.lineItems).filter(
-    (item) => getItemDisplay(item.name, menuItems).showOnKds
-  );
-
-  const sourceBadge = SOURCE_VARIANT[order.source] ?? SOURCE_VARIANT['Unknown'];
-
-  // 예약 주문: 픽업 시간 표시
-  const timeLabel = order.isScheduled && order.pickupAt
-    ? new Date(order.pickupAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    : 'NOW';
-
-  return (
-    <div
-      className="flex items-center border-b border-white/15 min-h-[2rem] cursor-pointer hover:brightness-110 transition-all bg-muted/30"
-      onClick={() => onUpdateStatus(order.id, 'IN_PROGRESS')}
-    >
-      {/* 주문번호 — 제일 왼쪽 */}
-      <span className="w-8 pl-1.5 font-black text-xs shrink-0 text-muted-foreground">
-        {order.displayId}
-      </span>
-
-      {/* 소스 배지 */}
-      <span className={`text-[9px] font-bold px-1 py-0.5 mr-1.5 rounded shrink-0 ${sourceBadge}`}>
-        {order.source}
-      </span>
-
-      {/* 아이템 나열 */}
-      <div className="flex-1 flex items-center gap-1.5 px-1 overflow-hidden">
-        {items.map((item, idx) => {
-          const display = getItemDisplay(item.name, menuItems);
-          return (
-            <span key={idx} className="text-xs font-bold whitespace-nowrap" style={{ color: display.textColor }}>
-              {Number(item.quantity) > 1 && <span className="mr-0.5">{item.quantity}</span>}
-              {display.label}
-            </span>
-          );
-        })}
-      </div>
-
-      {/* 고객 + 시간 */}
-      <div className="text-xs text-right px-1.5 shrink-0">
-        <span className="font-semibold mr-1">{order.displayName}</span>
-        <span className={`font-bold ${order.isScheduled ? 'text-yellow-400' : 'text-orange-400'}`}>
-          {timeLabel}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ── 오른쪽 패널 하단: 완료(READY/COMPLETED) 주문 compact 행 ─────────────────
-function DoneOrderRow({
-  order,
-  onUpdateStatus,
-}: {
-  order: KDSOrder;
-  onUpdateStatus: Props['onUpdateStatus'];
-}) {
-  const { menuDisplayConfig } = useKDSStore();
-  const { menuItems, modifiers } = menuDisplayConfig;
-
-  const items = mergeLineItems(order.lineItems).filter(
-    (item) => getItemDisplay(item.name, menuItems).showOnKds
-  );
-
-  const isReady = order.status === 'READY';
-
-  return (
-    <div
-      className={`flex items-center border-b border-white/10 transition-all ${isReady ? '' : 'opacity-35'}`}
-    >
-      {/* 주문번호 — READY면 클릭 시 COMPLETED 전진 */}
-      <span
-        className={`w-9 pl-1.5 font-black text-sm shrink-0 ${isReady ? 'text-green-400 cursor-pointer hover:brightness-125' : 'text-white/30'}`}
-        onClick={() => isReady && onUpdateStatus(order.id, 'COMPLETED')}
-        title={isReady ? 'Mark as Completed' : undefined}
-      >
-        {order.displayId}
-      </span>
-
-      {/* 상태 점 */}
-      <span className={`text-[10px] pr-1 shrink-0 ${isReady ? 'text-green-400' : 'text-white/25'}`}>
-        ●
-      </span>
-
-      {/* 아이템 인라인 — 카테고리 색 텍스트 */}
-      <div className="flex-1 flex items-center gap-1.5 px-1 py-1 overflow-hidden flex-wrap">
-        {items.map((item, idx) => {
-          const display = getItemDisplay(item.name, menuItems);
-          return (
-            <span key={idx} className="text-sm font-bold whitespace-nowrap flex items-center gap-0.5 opacity-70"
-                  style={{ color: display.bgColor }}>
-              {display.label}
-              {Number(item.quantity) > 1 && (
-                <span className="ml-1 text-white/80 font-black tabular-nums">×{item.quantity}</span>
-              )}
-              {item.modifiers?.map((mod, mIdx) => {
-                const modDisplay = getModifierDisplay(mod, modifiers);
-                if (!modDisplay.showOnKds) return null;
-                return (
-                  <span key={mIdx} className="text-xs font-normal text-white/35 ml-0.5">
-                    {modDisplay.label}
-                  </span>
-                );
-              })}
-            </span>
-          );
-        })}
-      </div>
-
-      {/* 고객 + 시간 */}
-      <div className="text-xs text-right px-1.5 shrink-0 leading-tight">
-        <div className="font-semibold text-white/60 truncate">{order.displayName}</div>
-        <div className="text-white/35 tabular-nums">{formatElapsed(order.createdAt)}</div>
-      </div>
-
-      {/* 되돌리기 버튼 */}
-      <button
-        className="w-7 shrink-0 flex items-center justify-center opacity-20 hover:opacity-70 transition-opacity self-stretch"
-        onClick={() => {
-          const prev = prevStatus(order.status);
-          if (prev) onUpdateStatus(order.id, prev);
-        }}
-        title="Undo"
-      >
-        <CornerUpLeft className="h-3.5 w-3.5" />
-      </button>
-    </div>
-  );
-}
-
 // ── 빈 상태 ────────────────────────────────────────────────────────────────
 function EmptyState({ label }: { label: string }) {
   return (
@@ -499,7 +357,7 @@ export default function OrderList({ activeOrders, scheduledOrders, readyOrders, 
           {sorted.length === 0
             ? <EmptyState label="No Scheduled Orders" />
             : sorted.map((o) => (
-                <IncomingOrderRow key={o.id} order={o} onUpdateStatus={onUpdateStatus} />
+                <ActiveOrderRow key={o.id} order={o} onUpdateStatus={onUpdateStatus} onPrint={onPrint} />
               ))
           }
         </div>
@@ -524,7 +382,7 @@ export default function OrderList({ activeOrders, scheduledOrders, readyOrders, 
           {sortedReady.length === 0
             ? <EmptyState label="No Ready Orders" />
             : sortedReady.map((o) => (
-                <DoneOrderRow key={o.id} order={o} onUpdateStatus={onUpdateStatus} />
+                <ActiveOrderRow key={o.id} order={o} onUpdateStatus={onUpdateStatus} onPrint={onPrint} />
               ))
           }
         </div>
@@ -537,7 +395,7 @@ export default function OrderList({ activeOrders, scheduledOrders, readyOrders, 
           {sortedDone.length === 0
             ? <EmptyState label="No Completed Orders" />
             : sortedDone.map((o) => (
-                <DoneOrderRow key={o.id} order={o} onUpdateStatus={onUpdateStatus} />
+                <ActiveOrderRow key={o.id} order={o} onUpdateStatus={onUpdateStatus} onPrint={onPrint} />
               ))
           }
         </div>
