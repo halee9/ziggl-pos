@@ -1,12 +1,13 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Printer } from 'lucide-react';
-import type { KDSOrder } from '../types';
+import type { KDSOrder, OrderModifier } from '../types';
+import { normalizeMod, formatMoney } from '../utils';
 
 interface ExpandedItem {
   name: string;
   variationName?: string;
-  modifiers?: string[];
+  modifiers?: OrderModifier[];
 }
 
 /** Expand each line item by its quantity (qty=2 → 2 label entries) */
@@ -18,7 +19,7 @@ function expandItems(lineItems: KDSOrder['lineItems']): ExpandedItem[] {
       result.push({
         name: item.name,
         variationName: item.variationName,
-        modifiers: item.modifiers,
+        modifiers: (item.modifiers ?? []).map(normalizeMod),
       });
     }
   });
@@ -112,7 +113,8 @@ export function PrintAllItemsButton({ order, className }: Props) {
               {/* Modifiers */}
               {items[currentIndex].modifiers?.map((m, i) => (
                 <div key={i} className="text-lg">
-                  {m}
+                  {m.qty > 1 ? `${m.qty}× ` : ''}{m.name}
+                  {m.price > 0 && <span className="text-sm ml-1">{formatMoney(m.price * m.qty)}</span>}
                 </div>
               ))}
             </div>
