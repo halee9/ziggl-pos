@@ -225,18 +225,16 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
               return (
                 <div key={item.id} className={`flex flex-col gap-2 border rounded-md p-3 ${isSoldOut ? 'border-red-500/50 bg-red-950/20' : 'border-border'}`}>
                   <div className="flex items-center gap-3 flex-wrap">
-                    {/* Sold Out 토글 */}
-                    <button
-                      type="button"
-                      onClick={() => toggleSoldOut(item)}
-                      className={`px-2 py-1 rounded text-xs font-bold shrink-0 transition-colors ${
+                    {/* Sold Out 표시 (Square Dashboard에서 직접 변경) */}
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-bold shrink-0 ${
                         isSoldOut
                           ? 'bg-red-600 text-white'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          : 'bg-muted text-muted-foreground'
                       }`}
                     >
                       {isSoldOut ? 'SOLD OUT' : 'In Stock'}
-                    </button>
+                    </span>
                     {/* 미리보기 */}
                     <span
                       className={`px-2 py-1 rounded font-bold text-sm min-w-[3rem] text-center shrink-0 ${isSoldOut ? 'opacity-40 line-through' : ''}`}
