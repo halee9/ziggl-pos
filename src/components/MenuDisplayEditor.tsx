@@ -34,6 +34,7 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
   const [squareItems, setSquareItems] = useState<SquareMenuItem[]>([]);
   const [menuConfig, setMenuConfig] = useState<Record<string, MenuDisplayItem>>({});
   const [modifierConfig, setModifierConfig] = useState<Record<string, ModifierDisplayItem>>({});
+  const [soldOutMap, setSoldOutMap] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -56,8 +57,13 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
         if (configRes.ok) {
           const { menuItems, modifiers } = await configRes.json();
           const menuMap: Record<string, MenuDisplayItem> = {};
-          (menuItems ?? []).forEach((m: MenuDisplayItem) => { menuMap[m.item_name] = m; });
+          const soldOut: Record<string, boolean> = {};
+          (menuItems ?? []).forEach((m: MenuDisplayItem) => {
+            menuMap[m.item_name] = m;
+            if (m.sold_out) soldOut[m.item_name] = true;
+          });
           setMenuConfig(menuMap);
+          setSoldOutMap(soldOut);
 
           const modMap: Record<string, ModifierDisplayItem> = {};
           (modifiers ?? []).forEach((m: ModifierDisplayItem) => { modMap[m.modifier_name] = m; });
@@ -84,6 +90,38 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
       ...prev,
       [modifierName]: { ...prev[modifierName], restaurant_code: restaurantCode, modifier_name: modifierName, [field]: value },
     }));
+  };
+
+  const toggleSoldOut = async (item: SquareMenuItem) => {
+    const prev = !!soldOutMap[item.name];
+    const next = !prev;
+
+    // Optimistic update
+    setSoldOutMap((m) => ({ ...m, [item.name]: next }));
+
+    try {
+      const res = await fetch(`${SERVER_URL}/api/menu-display/${restaurantCode.toLowerCase()}/availability`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pin,
+          itemName: item.name,
+          squareItemId: item.id,
+          soldOut: next,
+          type: 'item',
+        }),
+      });
+      if (!res.ok) {
+        // Revert on error
+        setSoldOutMap((m) => ({ ...m, [item.name]: prev }));
+        const data = await res.json().catch(() => null);
+        setErrorMsg(data?.error || `Failed to update availability (${res.status})`);
+      }
+    } catch {
+      // Revert on network error
+      setSoldOutMap((m) => ({ ...m, [item.name]: prev }));
+      setErrorMsg('Cannot connect to server to update availability.');
+    }
   };
 
   const handleSave = async () => {
@@ -172,15 +210,28 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
           ) : (
             squareItems.map((item) => {
               const cfg = menuConfig[item.name] ?? {};
+              const isSoldOut = !!soldOutMap[item.name];
               const previewBg   = cfg.bg_color   || '#F3F4F6';
               const previewText = cfg.text_color  || '#111827';
               const previewLabel = cfg.abbreviation || item.name;
               return (
-                <div key={item.id} className="flex flex-col gap-2 border border-border rounded-md p-3">
+                <div key={item.id} className={`flex flex-col gap-2 border rounded-md p-3 ${isSoldOut ? 'border-red-500/50 bg-red-950/20' : 'border-border'}`}>
                   <div className="flex items-center gap-3 flex-wrap">
+                    {/* Sold Out 토글 */}
+                    <button
+                      type="button"
+                      onClick={() => toggleSoldOut(item)}
+                      className={`px-2 py-1 rounded text-xs font-bold shrink-0 transition-colors ${
+                        isSoldOut
+                          ? 'bg-red-600 text-white'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {isSoldOut ? 'SOLD OUT' : 'In Stock'}
+                    </button>
                     {/* 미리보기 */}
                     <span
-                      className="px-2 py-1 rounded font-bold text-sm min-w-[3rem] text-center shrink-0"
+                      className={`px-2 py-1 rounded font-bold text-sm min-w-[3rem] text-center shrink-0 ${isSoldOut ? 'opacity-40 line-through' : ''}`}
                       style={{ backgroundColor: previewBg, color: previewText }}
                     >
                       {previewLabel.slice(0, 8)}

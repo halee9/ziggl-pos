@@ -13,6 +13,7 @@ export interface MenuDisplayItem {
   text_color?: string;
   show_on_kds?: boolean;  // false면 KDS 화면에서 숨김 (default: true)
   server_alert?: boolean; // true면 출력 티켓 하단에 확인 요망 표시 (default: false)
+  sold_out?: boolean;     // true면 품절 표시 (default: false)
 }
 
 export interface ModifierDisplayItem {
