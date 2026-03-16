@@ -100,37 +100,6 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
     }));
   };
 
-  const toggleSoldOut = async (item: SquareMenuItem) => {
-    const prev = !!soldOutMap[item.name];
-    const next = !prev;
-
-    // Optimistic update
-    setSoldOutMap((m) => ({ ...m, [item.name]: next }));
-
-    try {
-      const res = await fetch(`${SERVER_URL}/api/menu-display/${restaurantCode.toLowerCase()}/availability`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pin,
-          itemName: item.name,
-          squareItemId: item.id,
-          soldOut: next,
-          type: 'item',
-        }),
-      });
-      if (!res.ok) {
-        // Revert on error
-        setSoldOutMap((m) => ({ ...m, [item.name]: prev }));
-        const data = await res.json().catch(() => null);
-        setErrorMsg(data?.error || `Failed to update availability (${res.status})`);
-      }
-    } catch {
-      // Revert on network error
-      setSoldOutMap((m) => ({ ...m, [item.name]: prev }));
-      setErrorMsg('Cannot connect to server to update availability.');
-    }
-  };
 
   const handleSave = async () => {
     setSaving(true);
