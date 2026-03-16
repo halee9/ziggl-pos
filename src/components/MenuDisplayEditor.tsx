@@ -45,13 +45,21 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
       setLoading(true);
       try {
         const [menuRes, configRes] = await Promise.all([
-          fetch(`${SERVER_URL}/api/menu`),
+          fetch(`${SERVER_URL}/api/menu`, {
+            headers: { 'x-restaurant-code': restaurantCode.toLowerCase() },
+          }),
           fetch(`${SERVER_URL}/api/menu-display/${restaurantCode.toLowerCase()}`),
         ]);
 
         if (menuRes.ok) {
           const { items } = await menuRes.json();
           setSquareItems(items ?? []);
+          // Square에서 sold out된 아이템도 soldOutMap에 반영
+          const squareSoldOut: Record<string, boolean> = {};
+          (items ?? []).forEach((item: any) => {
+            if (item.soldOut) squareSoldOut[item.name] = true;
+          });
+          setSoldOutMap((prev) => ({ ...prev, ...squareSoldOut }));
         }
 
         if (configRes.ok) {
@@ -63,7 +71,7 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
             if (m.sold_out) soldOut[m.item_name] = true;
           });
           setMenuConfig(menuMap);
-          setSoldOutMap(soldOut);
+          setSoldOutMap((prev) => ({ ...prev, ...soldOut }));
 
           const modMap: Record<string, ModifierDisplayItem> = {};
           (modifiers ?? []).forEach((m: ModifierDisplayItem) => { modMap[m.modifier_name] = m; });
