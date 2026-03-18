@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { KDSOrder, OrderStatus } from '../types';
+import { useSessionStore } from '../stores/sessionStore';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
@@ -96,9 +97,54 @@ function getNextActions(status: OrderStatus): { label: string; icon: React.React
   }
 }
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+
 export default function OrderDetailPanel({ order, onClose, onStatusChange, onRefund }: Props) {
   const [refundConfirmOpen, setRefundConfirmOpen] = useState(false);
   const [refunding, setRefunding] = useState(false);
+  const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [pinVerified, setPinVerified] = useState(false);
+  const [verifyingPin, setVerifyingPin] = useState(false);
+  const restaurantCode = useSessionStore((s) => s.restaurantCode);
+
+  // Reset PIN state when dialog opens/closes
+  useEffect(() => {
+    if (!refundConfirmOpen) {
+      setPin('');
+      setPinError('');
+      setPinVerified(false);
+    }
+  }, [refundConfirmOpen]);
+
+  const verifyPin = useCallback(async (enteredPin: string) => {
+    if (!restaurantCode) return;
+    setVerifyingPin(true);
+    setPinError('');
+    try {
+      const res = await fetch(`${SERVER_URL}/api/config/${restaurantCode}/verify-pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: enteredPin }),
+      });
+      if (res.ok) {
+        setPinVerified(true);
+      } else {
+        setPinError('Incorrect PIN');
+        setPin('');
+      }
+    } catch {
+      setPinError('Server error');
+      setPin('');
+    } finally {
+      setVerifyingPin(false);
+    }
+  }, [restaurantCode]);
+
+  // Auto-submit on 4 digits
+  useEffect(() => {
+    if (pin.length === 4) verifyPin(pin);
+  }, [pin, verifyPin]);
 
   if (!order) return null;
 
@@ -195,20 +241,55 @@ export default function OrderDetailPanel({ order, onClose, onStatusChange, onRef
           </>
         )}
 
-        {/* Refund Confirmation Dialog */}
+        {/* Refund Confirmation Dialog with PIN */}
         <Dialog open={refundConfirmOpen} onOpenChange={setRefundConfirmOpen}>
           <DialogContent className="sm:max-w-sm">
             <DialogHeader>
               <DialogTitle>Confirm Refund</DialogTitle>
               <DialogDescription>
-                Refund {formatMoney(order.totalMoney)} for order #{order.displayId}? This will reverse the payment and cancel the order.
+                Refund {formatMoney(order.totalMoney)} for order #{order.displayId}? Enter your PIN to confirm.
               </DialogDescription>
             </DialogHeader>
+
+            {!pinVerified ? (
+              <div className="flex flex-col items-center gap-4 py-2">
+                {/* PIN dots */}
+                <div className="flex gap-3">
+                  {Array.from({ length: 4 }, (_, i) => (
+                    <div key={i} className={`w-3.5 h-3.5 rounded-full border-2 transition-all ${
+                      i < pin.length ? 'bg-primary border-primary' : 'border-muted-foreground/40'
+                    }`} />
+                  ))}
+                </div>
+                {pinError && <p className="text-destructive text-sm">{pinError}</p>}
+                {verifyingPin && <p className="text-sm text-muted-foreground animate-pulse">Verifying...</p>}
+                {/* Keypad */}
+                <div className="grid grid-cols-3 gap-2">
+                  {['1','2','3','4','5','6','7','8','9'].map((d) => (
+                    <button key={d} type="button" onClick={() => pin.length < 4 && setPin(p => p + d)}
+                      className="w-14 h-14 rounded-xl bg-secondary hover:bg-secondary/80 active:scale-95 text-lg font-bold transition-all">{d}</button>
+                  ))}
+                  <button type="button" onClick={() => { setPin(''); setPinError(''); }}
+                    className="w-14 h-14 rounded-xl bg-muted hover:bg-muted/80 text-xs font-semibold text-muted-foreground transition-all">CLR</button>
+                  <button type="button" onClick={() => pin.length < 4 && setPin(p => p + '0')}
+                    className="w-14 h-14 rounded-xl bg-secondary hover:bg-secondary/80 active:scale-95 text-lg font-bold transition-all">0</button>
+                  <button type="button" onClick={() => setPin(p => p.slice(0, -1))}
+                    className="w-14 h-14 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center text-muted-foreground transition-all">
+                    <XCircle size={18} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-2">
+                <p className="text-emerald-400 text-sm font-medium">PIN verified</p>
+              </div>
+            )}
+
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => setRefundConfirmOpen(false)} disabled={refunding}>
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleRefund} disabled={refunding}>
+              <Button variant="destructive" onClick={handleRefund} disabled={refunding || !pinVerified}>
                 {refunding ? 'Processing...' : 'Refund'}
               </Button>
             </DialogFooter>
