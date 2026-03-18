@@ -129,7 +129,7 @@ export default function OrderDetailPanel({ order, onClose, onStatusChange, onRef
 
   return (
     <Sheet open={!!order} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto bg-background border-l border-border">
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto bg-background border-l border-border p-6">
         <SheetHeader className="pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-lg font-bold flex items-center gap-2">

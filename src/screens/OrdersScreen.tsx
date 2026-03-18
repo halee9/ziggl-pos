@@ -26,6 +26,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'READY', label: 'Ready' },
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'CANCELED', label: 'Canceled' },
+  { value: 'REFUNDED', label: 'Refunded' },
 ];
 
 const SOURCE_OPTIONS: { value: string; label: string }[] = [
@@ -304,7 +305,10 @@ export default function OrdersScreen() {
                       <span className="font-mono font-bold text-sm">#{order.displayId}</span>
                       {sourceBadge(order.source)}
                     </div>
-                    {statusBadge(order.status)}
+                    <div className="flex items-center gap-1">
+                      {statusBadge(order.status)}
+                      {order.refundedAt && <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">Refunded</Badge>}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground truncate max-w-[180px]">
@@ -352,7 +356,12 @@ export default function OrdersScreen() {
                     <td className="px-4 py-3 text-right font-medium">
                       {formatMoney(order.totalMoney)}
                     </td>
-                    <td className="px-4 py-3">{statusBadge(order.status)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        {statusBadge(order.status)}
+                        {order.refundedAt && <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">Refunded</Badge>}
+                      </div>
+                    </td>
                     <td className="px-4 py-3">{sourceBadge(order.source)}</td>
                     <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
                       {formatTime(order.createdAt)}
