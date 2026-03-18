@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { KDSOrder, OrderStatus, MenuDisplayConfig } from '../types';
+import { isScheduledOrder } from '../utils/isScheduledOrder';
 
 const ACTIVATION_KEY = 'kds_activation_minutes';
 const DEFAULT_ACTIVATION = 20;
@@ -152,8 +153,8 @@ export const useKDSStore = create<KDSState>()((set, get) => ({
     const { orders } = get();
     return {
       pendingPayment: orders.filter((o) => o.status === 'PENDING_PAYMENT').length,
-      active:    orders.filter((o) => (o.status === 'OPEN' && !o.isScheduled) || o.status === 'IN_PROGRESS').length,
-      scheduled: orders.filter((o) => o.status === 'OPEN' && o.isScheduled).length,
+      active:    orders.filter((o) => (o.status === 'OPEN' || o.status === 'IN_PROGRESS') && !isScheduledOrder(o, Date.now(), get().scheduledActivationMinutes)).length,
+      scheduled: orders.filter((o) => (o.status === 'OPEN' || o.status === 'IN_PROGRESS') && isScheduledOrder(o, Date.now(), get().scheduledActivationMinutes)).length,
       // READY만 표시 (COMPLETED는 제외 — 실질적으로 중요한 건 READY)
       readyDone: orders.filter((o) => o.status === 'READY').length,
       cancelled: orders.filter((o) => o.status === 'CANCELED').length,

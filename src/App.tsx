@@ -23,6 +23,7 @@ import HomeScreen from './screens/HomeScreen';
 import ClockScreen from './screens/ClockScreen';
 import CashManagementScreen from './screens/CashManagementScreen';
 import { playOrderNotification } from './utils/sounds';
+import { isScheduledOrder } from './utils/isScheduledOrder';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
@@ -40,8 +41,8 @@ function KitchenScreen({ onUpdateStatus, onPrint, printQueue, setPrintQueue, now
   const { connected, orders, scheduledActivationMinutes, orderCounts } = useKDSStore();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const activeOrders    = orders.filter((o) => o.status === 'PENDING_PAYMENT' || (o.status === 'OPEN' && !o.isScheduled) || o.status === 'IN_PROGRESS');
-  const scheduledOrders = orders.filter((o) => o.status === 'OPEN' && o.isScheduled);
+  const activeOrders    = orders.filter((o) => o.status === 'PENDING_PAYMENT' || ((o.status === 'OPEN' || o.status === 'IN_PROGRESS') && !isScheduledOrder(o, now, scheduledActivationMinutes)));
+  const scheduledOrders = orders.filter((o) => (o.status === 'OPEN' || o.status === 'IN_PROGRESS') && isScheduledOrder(o, now, scheduledActivationMinutes));
   const readyOrders     = orders.filter((o) => o.status === 'READY');
   const completedOrders = orders.filter((o) => o.status === 'COMPLETED');
   const cancelledOrders = orders.filter((o) => o.status === 'CANCELED');
@@ -252,7 +253,7 @@ function AppShell() {
   useEffect(() => {
     if (!autoStartOrders) return;
     const toStart = orders.filter(
-      (o) => o.status === 'OPEN' && !o.isScheduled && !autoStartedRef.current.has(o.id)
+      (o) => o.status === 'OPEN' && !isScheduledOrder(o, Date.now(), scheduledActivationMinutes) && !autoStartedRef.current.has(o.id)
     );
     toStart.forEach((o) => {
       autoStartedRef.current.add(o.id);
@@ -266,8 +267,8 @@ function AppShell() {
     const toActivate = orders.filter(
       (o) =>
         o.status === 'OPEN' &&
-        o.isScheduled &&
-        (new Date(o.pickupAt).getTime() - now) / 60_000 <= scheduledActivationMinutes &&
+        o.pickupAt &&
+        !isScheduledOrder(o, now, scheduledActivationMinutes) &&
         !autoStartedRef.current.has(o.id)
     );
     toActivate.forEach((o) => {
