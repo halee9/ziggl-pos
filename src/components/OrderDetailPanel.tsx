@@ -87,6 +87,10 @@ function getNextActions(status: OrderStatus): { label: string; icon: React.React
       return [
         { label: 'Recall', icon: <ArrowRight size={14} />, nextStatus: 'READY', variant: 'outline' },
       ];
+    case 'CANCELED':
+      return [
+        { label: 'Reopen', icon: <ArrowRight size={14} />, nextStatus: 'OPEN', variant: 'outline' },
+      ];
     default:
       return [];
   }
@@ -99,7 +103,7 @@ export default function OrderDetailPanel({ order, onClose, onStatusChange, onRef
   if (!order) return null;
 
   const actions = getNextActions(order.status);
-  const canRefund = onRefund && ['OPEN', 'IN_PROGRESS', 'READY', 'COMPLETED'].includes(order.status) && !order.refundedAt;
+  const canRefund = onRefund && ['OPEN', 'IN_PROGRESS', 'READY', 'COMPLETED', 'CANCELED'].includes(order.status) && !order.refundedAt;
 
   const handleRefund = async () => {
     if (!onRefund) return;
