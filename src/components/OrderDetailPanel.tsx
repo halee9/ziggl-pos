@@ -99,7 +99,7 @@ export default function OrderDetailPanel({ order, onClose, onStatusChange, onRef
   if (!order) return null;
 
   const actions = getNextActions(order.status);
-  const canRefund = onRefund && (order.status === 'COMPLETED' || order.status === 'READY') && !order.refundedAt;
+  const canRefund = onRefund && ['OPEN', 'IN_PROGRESS', 'READY', 'COMPLETED'].includes(order.status) && !order.refundedAt;
 
   const handleRefund = async () => {
     if (!onRefund) return;
