@@ -4,8 +4,8 @@
     {
       "name": "POS Frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 5173
+      "runtimeArgs": ["run", "dev", "--", "--port", "5174"],
+      "port": 5174
     },
     {
       "name": "POS Backend",
