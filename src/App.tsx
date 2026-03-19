@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { socket } from './socket';
 import type { KDSOrder } from './types';
 import { useKDSStore } from './stores/kdsStore';
@@ -138,7 +138,6 @@ function RoleGuard({ path, children }: { path: string; children: React.ReactNode
 function AppShell() {
   const restaurantCode = useSessionStore((s) => s.restaurantCode)!;
   const theme = useSessionStore((s) => s.theme);
-  const location = useLocation();
   const {
     setOrders, addOrder, updateOrderStatus, cancelOrder,
     setConnected, setMenuDisplayConfig,
@@ -149,11 +148,10 @@ function AppShell() {
   const autoStartedRef = useRef<Set<string>>(new Set());
   const [now, setNow] = useState(() => Date.now());
 
-  // ── 테마 동기화: KDS는 항상 다크, 나머지는 사용자 선택 ──
+  // ── 테마 동기화 ──
   useEffect(() => {
-    const isDark = location.pathname === '/kds' || theme === 'dark';
-    document.documentElement.classList.toggle('dark', isDark);
-  }, [theme, location.pathname]);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   // 30초마다 now 갱신 → 예약 주문 자동 활성화 체크
   useEffect(() => {

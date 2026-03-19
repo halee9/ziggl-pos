@@ -7,7 +7,7 @@ import PinPad from './PinPad';
 import type { PosRole } from '../types';
 
 interface Props {
-  onJoin: (code: string, name: string, role?: PosRole, staffName?: string) => void;
+  onJoin: (code: string, name: string, role?: PosRole, staffName?: string, pin?: string) => void;
 }
 
 export default function RestaurantLogin({ onJoin }: Props) {
@@ -61,10 +61,10 @@ export default function RestaurantLogin({ onJoin }: Props) {
         restaurantName={pendingConfig.name}
         restaurantCode={pendingConfig.code}
         serverUrl={serverUrl}
-        onVerified={(role, staffName) => {
+        onVerified={(role, staffName, pin) => {
           localStorage.setItem('kds_restaurant_code', pendingConfig.code);
           localStorage.setItem('kds_restaurant_name', pendingConfig.name);
-          onJoin(pendingConfig.code, pendingConfig.name, role, staffName);
+          onJoin(pendingConfig.code, pendingConfig.name, role, staffName, pin);
         }}
         onBack={() => {
           setStep('code');

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, ChevronDown, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronRight, Inbox } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { KDSOrder } from '../types';
 import OrderCard from './OrderCard';
@@ -18,8 +18,8 @@ interface Props {
 
 function EmptyState({ label }: { label: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/40 select-none">
-      <div className="text-3xl mb-2">—</div>
+    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/30 select-none">
+      <Inbox className="h-8 w-8 mb-2" />
       <div className="text-xs">{label}</div>
     </div>
   );
@@ -132,7 +132,7 @@ export default function ActiveTabView({ orders, scheduledOrders, now, scheduledA
         <Column
           orders={kioskOrders}
           label="Kiosk"
-          headerClass="bg-blue-900/20"
+          headerClass="bg-blue-500/10 dark:bg-blue-900/20"
           emptyLabel="No Kiosk Orders"
           onUpdateStatus={onUpdateStatus}
           onPrint={onPrint}
@@ -142,7 +142,7 @@ export default function ActiveTabView({ orders, scheduledOrders, now, scheduledA
         <Column
           orders={onlineOrders}
           label="Online / Delivery"
-          headerClass="bg-purple-900/20"
+          headerClass="bg-purple-500/10 dark:bg-purple-900/20"
           emptyLabel="No Online Orders"
           onUpdateStatus={onUpdateStatus}
           onPrint={onPrint}
@@ -154,11 +154,11 @@ export default function ActiveTabView({ orders, scheduledOrders, now, scheduledA
         <div className="border-t border-border shrink-0">
           <button
             onClick={() => setScheduledOpen((v) => !v)}
-            className="w-full flex items-center gap-2 px-4 py-2 bg-purple-900/15 hover:bg-purple-900/25 transition-colors text-left"
+            className="w-full flex items-center gap-2 px-4 py-2 bg-purple-500/10 hover:bg-purple-500/15 dark:bg-purple-900/15 dark:hover:bg-purple-900/25 transition-colors text-left"
           >
-            {scheduledOpen ? <ChevronDown className="h-4 w-4 text-purple-400" /> : <ChevronRight className="h-4 w-4 text-purple-400" />}
-            <Calendar className="h-3.5 w-3.5 text-purple-400" />
-            <span className="text-xs font-bold tracking-widest uppercase text-purple-400">Scheduled</span>
+            {scheduledOpen ? <ChevronDown className="h-4 w-4 text-purple-600 dark:text-purple-400" /> : <ChevronRight className="h-4 w-4 text-purple-600 dark:text-purple-400" />}
+            <Calendar className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+            <span className="text-xs font-bold tracking-widest uppercase text-purple-600 dark:text-purple-400">Scheduled</span>
             <Badge variant="secondary" className="h-5 px-2 text-xs">{sortedScheduled.length}</Badge>
           </button>
 

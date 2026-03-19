@@ -7,7 +7,7 @@ interface Props {
   restaurantName: string;
   restaurantCode: string;
   serverUrl: string;
-  onVerified: (role: PosRole, staffName: string) => void;
+  onVerified: (role: PosRole, staffName: string, pin: string) => void;
   onBack: () => void;
 }
 
@@ -30,7 +30,7 @@ export default function PinPad({ restaurantName, restaurantCode, serverUrl, onVe
 
       if (res.ok) {
         const data = await res.json();
-        onVerified(data.role as PosRole, data.name);
+        onVerified(data.role as PosRole, data.name, enteredPin);
       } else if (res.status === 401) {
         setError('Incorrect PIN');
         setShake(true);

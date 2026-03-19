@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Delete, CheckCircle2, LogIn, LogOut, Clock, ArrowLeft } from 'lucide-react';
+import { Delete, CheckCircle2, LogIn, LogOut, Clock, ArrowLeft, Users, RefreshCw } from 'lucide-react';
 import { useSessionStore } from '../stores/sessionStore';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
@@ -64,6 +64,8 @@ function formatMoney(cents: number): string {
 export default function ClockScreen() {
   const restaurantCode = useSessionStore((s) => s.restaurantCode)!;
   const restaurantName = useSessionStore((s) => s.restaurantName);
+  const role = useSessionStore((s) => s.role);
+  const [showClockPad, setShowClockPad] = useState(role !== 'owner');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -357,6 +359,19 @@ export default function ClockScreen() {
     );
   }
 
+  // ── Owner: 직원 출퇴근 현황 ──────────────────────────────────────────────
+  if (role === 'owner' && !showClockPad) {
+    return (
+      <>
+        <TodayStaffView
+          restaurantCode={restaurantCode}
+          onShowClockPad={() => setShowClockPad(true)}
+        />
+        <style>{shakeStyle}</style>
+      </>
+    );
+  }
+
   // ── PIN 입력 화면 ─────────────────────────────────────────────────────────
   return (
     <div className="h-full flex items-center justify-center p-4">
@@ -403,22 +418,169 @@ export default function ClockScreen() {
             <div className="text-sm text-muted-foreground animate-pulse">Processing...</div>
           )}
 
-          {/* Current time */}
-          <p className="text-xs text-muted-foreground">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-          </p>
+          {/* Current time + back to staff view for owner */}
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-xs text-muted-foreground">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+            </p>
+            {role === 'owner' && (
+              <button
+                type="button"
+                onClick={() => { setShowClockPad(false); setPin(''); setError(''); }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
+              >
+                ← Back to Staff Overview
+              </button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Shake animation */}
-      <style>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          20%, 60% { transform: translateX(-8px); }
-          40%, 80% { transform: translateX(8px); }
-        }
-        .animate-shake { animation: shake 0.4s ease-in-out; }
-      `}</style>
+      <style>{shakeStyle}</style>
+    </div>
+  );
+}
+
+// ── Shake animation style ──────────────────────────────────────────────────
+const shakeStyle = `
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+  }
+  .animate-shake { animation: shake 0.4s ease-in-out; }
+`;
+
+// ── Today Staff View (Owner) ────────────────────────────────────────────────
+
+interface StaffEntry {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  clock_in: string;
+  clock_out: string | null;
+  pay_hours: number | null;
+}
+
+function TodayStaffView({ restaurantCode, onShowClockPad }: {
+  restaurantCode: string;
+  onShowClockPad: () => void;
+}) {
+  const sessionPin = useSessionStore((s) => s.pin);
+  const [entries, setEntries] = useState<StaffEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchEntries = useCallback(async () => {
+    if (!sessionPin) return;
+    setLoading(true);
+    try {
+      const today = new Date().toLocaleDateString('en-CA');
+      const res = await fetch(
+        `${SERVER_URL}/api/staff/${restaurantCode}/time-entries?pin=${encodeURIComponent(sessionPin)}&from=${today}&to=${today}`
+      );
+      if (!res.ok) throw new Error('Failed');
+      const data = await res.json();
+      setEntries(data.entries || []);
+    } catch {
+      console.error('[Clock] Failed to load staff entries');
+    } finally {
+      setLoading(false);
+    }
+  }, [restaurantCode, sessionPin]);
+
+  useEffect(() => { fetchEntries(); }, [fetchEntries]);
+
+  // Group entries by staff
+  const staffGroups = entries.reduce<Record<string, { name: string; entries: StaffEntry[] }>>((acc, e) => {
+    if (!acc[e.staff_id]) acc[e.staff_id] = { name: e.staff_name, entries: [] };
+    acc[e.staff_id].entries.push(e);
+    return acc;
+  }, {});
+
+  const activeCount = entries.filter((e) => !e.clock_out).length;
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <p className="text-muted-foreground animate-pulse">Loading...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full overflow-auto bg-background">
+      <div className="max-w-2xl mx-auto px-4 py-4 sm:px-6 space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <Users size={20} /> Today's Clock
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              {activeCount > 0 && <span className="ml-2 text-emerald-500">● {activeCount} active</span>}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => fetchEntries()}>
+              <RefreshCw size={14} />
+            </Button>
+            <Button size="sm" onClick={onShowClockPad} className="gap-1.5">
+              <Clock size={14} /> Clock In/Out
+            </Button>
+          </div>
+        </div>
+
+        {/* Staff entries */}
+        {Object.keys(staffGroups).length === 0 ? (
+          <Card className="p-8 bg-card border-border text-center">
+            <p className="text-muted-foreground">No clock entries today</p>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {Object.entries(staffGroups).map(([staffId, { name, entries: staffEntries }]) => {
+              const isActive = staffEntries.some((e) => !e.clock_out);
+              const totalHours = staffEntries.reduce((sum, e) => {
+                return sum + (e.pay_hours ?? calcWorkedHours(e.clock_in, e.clock_out));
+              }, 0);
+
+              return (
+                <Card key={staffId} className="p-4 bg-card border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-foreground">{name}</span>
+                      {isActive && (
+                        <span className="text-xs bg-emerald-500/20 text-emerald-500 px-2 py-0.5 rounded-full">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {totalHours.toFixed(1)}h
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {staffEntries.map((e) => (
+                      <div key={e.id} className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>
+                          {formatTime(e.clock_in)}
+                          {e.clock_out ? ` → ${formatTime(e.clock_out)}` : ''}
+                        </span>
+                        <span>
+                          {e.clock_out
+                            ? formatDuration(e.clock_in, e.clock_out)
+                            : <span className="text-emerald-500">Clocked in</span>
+                          }
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

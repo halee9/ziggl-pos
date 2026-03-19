@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, ChevronDown, ChevronRight, CornerUpLeft, Printer, Check, Info, Banknote, X } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronRight, CornerUpLeft, Printer, Check, Info, Banknote, X, Inbox } from 'lucide-react';
 import type { KDSOrder, OrderStatus } from '../types';
 import { getItemDisplay, getModifierDisplay, mergeLineItems, formatElapsed, formatDuration, getElapsedMinutes } from '../utils';
 import { useKDSStore } from '../stores/kdsStore';
@@ -163,7 +163,7 @@ function ActiveOrderRow({
 
   return (
     <div
-      className={`relative flex items-stretch border-b transition-all ${isPendingPayment ? 'border-amber-500/40 bg-amber-900/10' : 'border-white/20'}`}
+      className={`relative flex items-stretch border-b transition-all ${isPendingPayment ? 'border-amber-500/40 bg-amber-900/10' : 'border-border even:bg-muted/30'}`}
     >
       {/* 긴급도 바 — 왼쪽 세로 색상 스트라이프 */}
       <div className={`w-1 self-stretch shrink-0 transition-colors duration-500 ${isPendingPayment ? 'bg-amber-500' : URGENCY_BAR[urgency]}`} />
@@ -193,11 +193,12 @@ function ActiveOrderRow({
           return (
             <div key={idx} className="flex items-center gap-1.5 flex-wrap">
               <span
-                className="px-2.5 py-0.5 rounded-md text-4xl font-black leading-tight inline-flex items-center gap-1.5 transition-all select-none cursor-pointer"
+                className={`px-2.5 py-0.5 rounded-md text-4xl font-black leading-tight inline-flex items-center gap-1.5 transition-all select-none cursor-pointer ${isDone ? 'bg-muted text-muted-foreground' : ''}`}
                 style={isDone
-                  ? { backgroundColor: '#1f2937', color: '#6b7280' }
+                  ? undefined
                   : { backgroundColor: display.bgColor, color: display.textColor }
                 }
+                data-done={isDone || undefined}
                 onClick={(e) => handleItemClick(e, idx, qty)}
               >
                 {isDone && <Check className="h-7 w-7 text-green-500 shrink-0" />}
@@ -205,19 +206,19 @@ function ActiveOrderRow({
               </span>
               {qty > 1 && (
                 isDone
-                  ? <span className="text-3xl font-black leading-none tabular-nums text-white/25">
+                  ? <span className="text-3xl font-black leading-none tabular-nums text-muted-foreground/40">
                       ×{qty}
                     </span>
                   : doneCount > 0
-                    ? <span className="text-3xl font-black leading-none tabular-nums text-green-400">
+                    ? <span className="text-3xl font-black leading-none tabular-nums text-green-600 dark:text-green-400">
                         {doneCount}/{qty}
                       </span>
-                    : <span className="text-3xl font-black leading-none tabular-nums text-white">
+                    : <span className="text-3xl font-black leading-none tabular-nums text-foreground">
                         ×{qty}
                       </span>
               )}
               {item.variationName && (
-                <span className={`text-sm transition-colors ${isDone ? 'text-white/20' : 'text-white/40'}`}>
+                <span className={`text-sm transition-colors ${isDone ? 'text-muted-foreground/30' : 'text-muted-foreground/60'}`}>
                   ({item.variationName})
                 </span>
               )}
@@ -228,10 +229,10 @@ function ActiveOrderRow({
                     key={mIdx}
                     className={`text-sm px-2 py-0.5 rounded border font-medium shrink-0 flex items-center gap-1 transition-all bg-transparent ${
                       isDone
-                        ? 'border-white/10 text-white/25'
+                        ? 'border-border text-muted-foreground/30'
                         : modDisplay.bgColor
                           ? ''
-                          : 'border-white/30 text-white/70'
+                          : 'border-border text-foreground/70'
                     }`}
                     style={!isDone && modDisplay.bgColor
                       ? { borderColor: modDisplay.bgColor, color: modDisplay.bgColor }
@@ -247,17 +248,17 @@ function ActiveOrderRow({
           );
         })}
         {order.note && (
-          <div className="text-sm bg-yellow-900/40 text-yellow-200 border border-yellow-700/40 rounded px-2 py-1 italic">
+          <div className="text-sm bg-yellow-100 text-yellow-800 border border-yellow-300 dark:bg-yellow-900/40 dark:text-yellow-200 dark:border-yellow-700/40 rounded px-2 py-1 italic">
             ★ {order.note}
           </div>
         )}
         {isPendingPayment && (
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm font-bold text-amber-400 flex items-center gap-1">
+            <span className="text-sm font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
               <Banknote className="h-4 w-4" /> CASH — Collect ${((order.totalMoney ?? 0) / 100).toFixed(2)}
             </span>
             <button
-              className="ml-auto text-xs px-2 py-1 rounded border border-white/20 text-white/60 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1"
+              className="ml-auto text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1"
               onClick={(e) => { e.stopPropagation(); onRejectCash?.(order.id); }}
             >
               <X className="h-3 w-3" /> Cancel
@@ -317,8 +318,8 @@ function ActiveOrderRow({
 // ── 빈 상태 ────────────────────────────────────────────────────────────────
 function EmptyState({ label }: { label: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-10 text-muted-foreground/40 select-none">
-      <div className="text-3xl mb-2">🍽️</div>
+    <div className="flex flex-col items-center justify-center py-10 text-muted-foreground/30 select-none">
+      <Inbox className="h-8 w-8 mb-2" />
       <div className="text-xs">{label}</div>
     </div>
   );

@@ -20,7 +20,6 @@ export default function Sidebar() {
   const staffName = useSessionStore((s) => s.staffName);
   const theme = useSessionStore((s) => s.theme);
   const setTheme = useSessionStore((s) => s.setTheme);
-  const isKds = location.pathname === '/kds';
   const setOrders = useKDSStore((s) => s.setOrders);
   const counts = useKDSStore((s) => s.orderCounts)();
 
@@ -103,18 +102,16 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* Theme toggle — KDS 페이지에서는 숨김 (항상 dark) */}
-      {!isKds && (
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="group relative w-11 h-11 flex items-center justify-center rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-secondary/50 mb-1"
-        >
-          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          <span className="absolute left-full ml-2 px-2 py-1 rounded bg-popover text-popover-foreground text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity shadow-lg border border-border z-50">
-            {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-          </span>
-        </button>
-      )}
+      {/* Theme toggle */}
+      <button
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        className="group relative w-11 h-11 flex items-center justify-center rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-secondary/50 mb-1"
+      >
+        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+        <span className="absolute left-full ml-2 px-2 py-1 rounded bg-popover text-popover-foreground text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity shadow-lg border border-border z-50">
+          {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+        </span>
+      </button>
 
       {/* Bottom nav */}
       <nav className="flex flex-col items-center gap-1">

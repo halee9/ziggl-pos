@@ -70,12 +70,12 @@ export default function OrderCard({ order, onUpdateStatus, onPrint, onConfirmCas
             <span className="text-sm font-semibold text-muted-foreground truncate">{order.displayName}</span>
           )}
           {order.isDelivery && (
-            <Badge variant="outline" className="shrink-0 text-xs border-blue-500 text-blue-400 flex items-center gap-1">
+            <Badge variant="outline" className="shrink-0 text-xs border-blue-500 text-blue-600 dark:text-blue-400 flex items-center gap-1">
               <Truck className="h-3 w-3" /> Delivery
             </Badge>
           )}
           {order.isScheduled && (
-            <Badge variant="outline" className="shrink-0 text-xs border-purple-500 text-purple-400 flex items-center gap-1">
+            <Badge variant="outline" className="shrink-0 text-xs border-purple-500 text-purple-600 dark:text-purple-400 flex items-center gap-1">
               <Calendar className="h-3 w-3" /> Scheduled
             </Badge>
           )}
@@ -130,7 +130,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint, onConfirmCas
           );
         })}
         {order.note && (
-          <div className="mt-1 text-sm text-yellow-200 bg-yellow-900/30 border border-yellow-800/40 rounded px-2 py-1 flex items-start gap-1.5">
+          <div className="mt-1 text-sm text-yellow-800 bg-yellow-100 border border-yellow-300 dark:text-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-800/40 rounded px-2 py-1 flex items-start gap-1.5">
             <FileText className="h-3.5 w-3.5 mt-0.5 shrink-0" />
             {order.note}
           </div>
@@ -226,7 +226,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint, onConfirmCas
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-              <div className="flex-1 flex items-center justify-center gap-1.5 text-green-400 font-bold text-sm">
+              <div className="flex-1 flex items-center justify-center gap-1.5 text-green-600 dark:text-green-400 font-bold text-sm">
                 <Check className="h-4 w-4" /> Done
               </div>
             </div>
