@@ -277,6 +277,16 @@ function AppShell() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [now]);
 
+  // autoPrint 켤 때 기존 IN_PROGRESS 주문을 이미 프린트된 것으로 마킹
+  useEffect(() => {
+    if (autoPrint) {
+      orders.forEach((o) => {
+        if (o.status === 'IN_PROGRESS') autoPrintedRef.current.add(o.id);
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPrint]);
+
   // 자동 프린트: IN_PROGRESS 전환 시 자동 출력
   useEffect(() => {
     if (!autoPrint) return;
@@ -288,7 +298,7 @@ function AppShell() {
       setPrintQueue((q) => [...q, ...toPrint]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orders, autoPrint]);
+  }, [orders]);
 
   const handlePrint = (order: KDSOrder) => {
     setPrintQueue((q) => [...q, order]);
