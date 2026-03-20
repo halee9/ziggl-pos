@@ -54,7 +54,7 @@ export function TicketContent({ order, menuItems, modifiers: modifierList }: {
           <p className="text-7xl font-bold leading-none">{order.displayId}</p>
           <p className="text-sm text-center mt-1">No Bags</p>
         </div>
-        <QRCode value={`${SERVER_URL}/receipt/${order.id}`} size={90} />
+        <QRCode value={`${SERVER_URL}/receipt/${order.id}`} size={120} />
       </div>
 
       <hr className="border-black my-2" />
