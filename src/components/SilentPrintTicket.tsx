@@ -19,17 +19,24 @@ export default function SilentPrintTicket({ order, onDone }: Props) {
   const { menuItems, modifiers } = menuDisplayConfig;
   const printRef = useRef<HTMLDivElement>(null);
 
+  const doneRef = useRef(false);
+  const safeDone = useCallback(() => {
+    if (!doneRef.current) { doneRef.current = true; onDone(); }
+  }, [onDone]);
+
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Order-${order.displayId}`,
-    onAfterPrint: onDone,
+    onAfterPrint: safeDone,
   });
 
   const triggerPrint = useCallback(handlePrint, [handlePrint]);
 
   useEffect(() => {
     const timer = setTimeout(triggerPrint, 100);
-    return () => clearTimeout(timer);
+    // 안전장치: 5초 내 프린트 완료 안 되면 큐에서 제거
+    const fallback = setTimeout(safeDone, 5000);
+    return () => { clearTimeout(timer); clearTimeout(fallback); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
