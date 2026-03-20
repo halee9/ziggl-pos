@@ -170,17 +170,17 @@ function ActiveOrderRow({
 
       {/* 주문번호 배지 — 클릭 시 상태 전진 */}
       <div
-        className={`w-20 flex items-center justify-center shrink-0 cursor-pointer hover:brightness-125 transition-all ${badgeClass(order.status)}`}
+        className={`w-14 flex items-center justify-center shrink-0 cursor-pointer hover:brightness-125 transition-all ${badgeClass(order.status)}`}
         onClick={handleAdvance}
         title="Next status"
       >
-        <span className="text-5xl font-black leading-none">
+        <span className="text-3xl font-black leading-none">
           {order.displayId}
         </span>
       </div>
 
       {/* 아이템 — 한 아이템당 한 줄, 옵션 인라인 */}
-      <div className="flex-1 min-w-0 flex flex-col justify-center gap-2 px-4 py-2">
+      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5 px-3 py-1.5">
         {items.map((item, idx) => {
           const display = getItemDisplay(item.name, menuItems);
           const qty       = Number(item.quantity);
@@ -191,9 +191,9 @@ function ActiveOrderRow({
             return modDisplay.showOnKds;
           }) ?? [];
           return (
-            <div key={idx} className="flex items-center gap-2 flex-wrap">
+            <div key={idx} className="flex items-center gap-1.5 flex-wrap">
               <span
-                className={`px-3 py-1 rounded-md text-6xl font-black leading-tight inline-flex items-center gap-2 transition-all select-none cursor-pointer ${isDone ? 'bg-muted text-muted-foreground' : ''}`}
+                className={`px-3 py-0.5 rounded-md text-5xl font-black leading-tight inline-flex items-center gap-1.5 transition-all select-none cursor-pointer ${isDone ? 'bg-muted text-muted-foreground' : ''}`}
                 style={isDone
                   ? undefined
                   : { backgroundColor: display.bgColor, color: display.textColor }
@@ -201,24 +201,24 @@ function ActiveOrderRow({
                 data-done={isDone || undefined}
                 onClick={(e) => handleItemClick(e, idx, qty)}
               >
-                {isDone && <Check className="h-10 w-10 text-green-500 shrink-0" />}
+                {isDone && <Check className="h-9 w-9 text-green-500 shrink-0" />}
                 {display.label}
               </span>
               {qty > 1 && (
                 isDone
-                  ? <span className="text-5xl font-black leading-none tabular-nums text-muted-foreground/40">
+                  ? <span className="text-4xl font-black leading-none tabular-nums text-muted-foreground/40">
                       ×{qty}
                     </span>
                   : doneCount > 0
-                    ? <span className="text-5xl font-black leading-none tabular-nums text-green-600 dark:text-green-400">
+                    ? <span className="text-4xl font-black leading-none tabular-nums text-green-600 dark:text-green-400">
                         {doneCount}/{qty}
                       </span>
-                    : <span className="text-5xl font-black leading-none tabular-nums text-foreground">
+                    : <span className="text-4xl font-black leading-none tabular-nums text-foreground">
                         ×{qty}
                       </span>
               )}
               {item.variationName && (
-                <span className={`text-lg transition-colors ${isDone ? 'text-muted-foreground/30' : 'text-muted-foreground/60'}`}>
+                <span className={`text-base transition-colors ${isDone ? 'text-muted-foreground/30' : 'text-muted-foreground/60'}`}>
                   ({item.variationName})
                 </span>
               )}
@@ -227,7 +227,7 @@ function ActiveOrderRow({
                 return (
                   <span
                     key={mIdx}
-                    className={`text-xl px-3 py-1 rounded border font-medium shrink-0 flex items-center gap-1.5 transition-all bg-transparent ${
+                    className={`text-base px-2.5 py-0.5 rounded border font-medium shrink-0 flex items-center gap-1 transition-all bg-transparent ${
                       isDone
                         ? 'border-border text-muted-foreground/30'
                         : modDisplay.bgColor
@@ -245,7 +245,7 @@ function ActiveOrderRow({
                 );
               })}
               {item.note && (
-                <span className="text-lg text-yellow-800 bg-yellow-100 dark:text-yellow-200 dark:bg-yellow-900/30 px-3 py-1 rounded italic">
+                <span className="text-base text-yellow-800 bg-yellow-100 dark:text-yellow-200 dark:bg-yellow-900/30 px-2 py-0.5 rounded italic">
                   "{item.note}"
                 </span>
               )}

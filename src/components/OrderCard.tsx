@@ -99,40 +99,40 @@ export default function OrderCard({ order, onUpdateStatus, onPrint, onConfirmCas
       </CardHeader>
 
       {/* Line items */}
-      <CardContent className="flex flex-col gap-4 px-5 py-4 border-t border-border">
+      <CardContent className="flex flex-col gap-3 px-5 py-4 border-t border-border">
         {mergeLineItems(order.lineItems).map((item, idx) => {
           const display = getItemDisplay(item.name, menuItems);
           if (!display.showOnKds) return null;
           return (
-            <div key={idx} className="flex items-center gap-2 flex-wrap">
-              <span className="font-black text-2xl min-w-[2.5rem]">{item.quantity}×</span>
+            <div key={idx} className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-black text-xl min-w-[2rem]">{item.quantity}×</span>
               <span
-                className="px-3 py-1.5 rounded-md font-bold text-2xl leading-tight"
+                className="px-2.5 py-1 rounded-md font-bold text-xl leading-tight"
                 style={{ backgroundColor: display.bgColor, color: display.textColor }}
               >
                 {display.label}
                 {display.serverAlert && (
-                  <AlertTriangle className="inline ml-1.5 h-5 w-5 text-red-500" />
+                  <AlertTriangle className="inline ml-1.5 h-4 w-4 text-red-500" />
                 )}
               </span>
               {item.variationName && (
-                <span className="text-muted-foreground text-lg">({item.variationName})</span>
+                <span className="text-muted-foreground text-base">({item.variationName})</span>
               )}
               {item.modifiers?.map((mod, mIdx) => {
                 const modDisplay = getModifierDisplay(mod, modifierDisplay);
                 if (!modDisplay.showOnKds) return null;
                 return (
-                  <span key={mIdx} className="text-xl bg-muted px-3 py-1 rounded text-muted-foreground flex items-center gap-1.5">
+                  <span key={mIdx} className="text-lg bg-muted px-2.5 py-0.5 rounded text-muted-foreground flex items-center gap-1">
                     {modDisplay.qty > 1 && <span className="font-bold">{modDisplay.qty}×</span>}
                     {modDisplay.label}
                     {modDisplay.serverAlert && (
-                      <AlertTriangle className="h-4 w-4 text-red-400" />
+                      <AlertTriangle className="h-3.5 w-3.5 text-red-400" />
                     )}
                   </span>
                 );
               })}
               {item.note && (
-                <span className="text-lg text-yellow-800 bg-yellow-100 dark:text-yellow-200 dark:bg-yellow-900/30 px-3 py-1 rounded italic">
+                <span className="text-base text-yellow-800 bg-yellow-100 dark:text-yellow-200 dark:bg-yellow-900/30 px-2 py-0.5 rounded italic">
                   "{item.note}"
                 </span>
               )}
