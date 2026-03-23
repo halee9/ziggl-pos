@@ -292,6 +292,13 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
     else if (activeTab === 'forecast') fetchForecast();
   }, [activeTab, fetchDaily, fetchWeekly, fetchMonthly, fetchForecast]);
 
+  // Daily 탭 + 오늘 날짜일 때 60초 polling
+  useEffect(() => {
+    if (activeTab !== 'daily' || dailyDate !== todayStr()) return;
+    const id = setInterval(fetchDaily, 60_000);
+    return () => clearInterval(id);
+  }, [activeTab, dailyDate, fetchDaily]);
+
   // 차트 스타일
   const tooltipStyle = {
     background: isDark ? '#1f2937' : '#fff',
