@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import {
-  Search, ChevronLeft, ChevronRight, RefreshCw, Filter, X, AlertTriangle, CalendarIcon,
+  Search, ChevronLeft, ChevronRight, RefreshCw, Filter, X, AlertTriangle, CalendarIcon, Banknote,
 } from 'lucide-react';
 import { Calendar } from '../components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
@@ -332,6 +332,7 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-sm">#{order.displayId}</span>
                       {sourceBadge(order.source)}
+                      {order.paymentMethod === 'CASH' && <Badge className="bg-amber-600 text-white border-0 text-xs flex items-center gap-0.5"><Banknote className="h-3 w-3" />CASH</Badge>}
                     </div>
                     <div className="flex items-center gap-1">
                       {statusBadge(order.status)}
@@ -392,7 +393,12 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                         {order.duplicateOf && <Badge className="bg-red-600 text-white text-xs flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" /> Dup #{order.duplicateOf}</Badge>}
                       </div>
                     </td>
-                    <td className="px-4 py-3">{sourceBadge(order.source)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        {sourceBadge(order.source)}
+                        {order.paymentMethod === 'CASH' && <Badge className="bg-amber-600 text-white border-0 text-xs flex items-center gap-0.5"><Banknote className="h-3 w-3" />CASH</Badge>}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
                       {formatTime(order.createdAt)}
                     </td>
