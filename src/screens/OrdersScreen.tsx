@@ -12,8 +12,10 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import {
-  Search, ChevronLeft, ChevronRight, RefreshCw, Filter, X, AlertTriangle,
+  Search, ChevronLeft, ChevronRight, RefreshCw, Filter, X, AlertTriangle, CalendarIcon,
 } from 'lucide-react';
+import { Calendar } from '../components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import OrderDetailPanel from '../components/OrderDetailPanel';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
@@ -39,7 +41,7 @@ const SOURCE_OPTIONS: { value: string; label: string }[] = [
   { value: 'Square Online', label: 'Square Online' },
 ];
 
-const LIMIT = 20;
+const LIMIT = 200;
 
 function statusBadge(status: OrderStatus) {
   const map: Record<OrderStatus, { label: string; className: string }> = {
@@ -88,9 +90,10 @@ function formatTime(iso: string) {
 
 interface OrdersScreenProps {
   restaurantCode?: string | null;
+  allowDelete?: boolean;
 }
 
-export default function OrdersScreen({ restaurantCode: propCode }: OrdersScreenProps = {}) {
+export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: OrdersScreenProps = {}) {
   const storeCode = useSessionStore((s) => s.restaurantCode);
   const restaurantCode = propCode ?? storeCode;
 
@@ -257,22 +260,40 @@ export default function OrdersScreen({ restaurantCode: propCode }: OrdersScreenP
 
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">From</label>
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-                className="h-8 text-sm w-[140px]"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-8 text-sm w-[140px] justify-start font-normal">
+                    <CalendarIcon size={14} className="mr-1.5 text-muted-foreground" />
+                    {dateFrom ? new Date(dateFrom + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : <span className="text-muted-foreground">Pick date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateFrom ? new Date(dateFrom + 'T00:00:00') : undefined}
+                    onSelect={(date) => { setDateFrom(date ? date.toLocaleDateString('en-CA') : ''); setPage(1); }}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">To</label>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-                className="h-8 text-sm w-[140px]"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-8 text-sm w-[140px] justify-start font-normal">
+                    <CalendarIcon size={14} className="mr-1.5 text-muted-foreground" />
+                    {dateTo ? new Date(dateTo + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : <span className="text-muted-foreground">Pick date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateTo ? new Date(dateTo + 'T00:00:00') : undefined}
+                    onSelect={(date) => { setDateTo(date ? date.toLocaleDateString('en-CA') : ''); setPage(1); }}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             {hasActiveFilters && (
@@ -419,6 +440,7 @@ export default function OrdersScreen({ restaurantCode: propCode }: OrdersScreenP
       <OrderDetailPanel
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
+        allowDirectStatus={allowDelete}
         onStatusChange={async (orderId, status) => {
           try {
             await fetch(`${SERVER_URL}/api/orders/${orderId}/status`, {
@@ -451,6 +473,15 @@ export default function OrdersScreen({ restaurantCode: propCode }: OrdersScreenP
           }
           fetchOrders();
         }}
+        onDelete={allowDelete ? async (orderId) => {
+          const res = await fetch(`${SERVER_URL}/api/orders/${orderId}`, { method: 'DELETE' });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            alert(data.error || 'Delete failed');
+            throw new Error(data.error || 'Delete failed');
+          }
+          fetchOrders();
+        } : undefined}
       />
     </div>
   );

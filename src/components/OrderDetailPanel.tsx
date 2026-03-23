@@ -19,6 +19,13 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import {
   Clock, CreditCard, User, Package,
   ChefHat, CheckCircle2, XCircle,
   ArrowRight, Undo2,
@@ -29,6 +36,8 @@ interface Props {
   onClose: () => void;
   onStatusChange: (orderId: string, status: OrderStatus) => Promise<void>;
   onRefund?: (orderId: string) => Promise<void>;
+  onDelete?: (orderId: string) => Promise<void>;
+  allowDirectStatus?: boolean;
 }
 
 function formatMoney(cents: number) {
@@ -99,9 +108,20 @@ function getNextActions(status: OrderStatus): { label: string; icon: React.React
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
-export default function OrderDetailPanel({ order, onClose, onStatusChange, onRefund }: Props) {
+const ALL_STATUSES: { value: OrderStatus; label: string }[] = [
+  { value: 'PENDING_PAYMENT', label: 'Cash Due' },
+  { value: 'OPEN', label: 'Open' },
+  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'READY', label: 'Ready' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'CANCELED', label: 'Canceled' },
+];
+
+export default function OrderDetailPanel({ order, onClose, onStatusChange, onRefund, onDelete, allowDirectStatus }: Props) {
   const [refundConfirmOpen, setRefundConfirmOpen] = useState(false);
   const [refunding, setRefunding] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [pinVerified, setPinVerified] = useState(false);
@@ -165,6 +185,20 @@ export default function OrderDetailPanel({ order, onClose, onStatusChange, onRef
     }
   };
 
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    setDeleting(true);
+    try {
+      await onDelete(order.id);
+      setDeleteConfirmOpen(false);
+      onClose();
+    } catch {
+      // error handled by parent
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const timeline = [
     { label: 'Created', time: order.createdAt, icon: <Clock size={12} /> },
     { label: 'Started', time: order.startedAt, icon: <ChefHat size={12} /> },
@@ -205,7 +239,40 @@ export default function OrderDetailPanel({ order, onClose, onStatusChange, onRef
         </SheetHeader>
 
         {/* Actions */}
-        {(actions.length > 0 || canRefund || order.refundedAt) && (
+        {allowDirectStatus ? (
+          <>
+            <div className="flex gap-2 mb-4 flex-wrap items-center">
+              <Select
+                value={order.status}
+                onValueChange={(v) => onStatusChange(order.id, v as OrderStatus)}
+              >
+                <SelectTrigger className="h-8 w-[160px] text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ALL_STATUSES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {canRefund && (
+                <Button variant="destructive" size="sm" onClick={() => setRefundConfirmOpen(true)} className="flex items-center gap-1">
+                  <Undo2 size={14} /> Refund
+                </Button>
+              )}
+              {order.refundedAt && (
+                <Badge variant="outline" className="text-sm bg-red-500/20 text-red-400 border-red-500/30">Refunded</Badge>
+              )}
+              {onDelete && (
+                <Button variant="outline" size="sm" onClick={() => setDeleteConfirmOpen(true)}
+                  className="flex items-center gap-1 border-red-500/30 text-red-400 hover:bg-red-500/10">
+                  <XCircle size={14} /> Delete
+                </Button>
+              )}
+            </div>
+            <Separator className="mb-4" />
+          </>
+        ) : (actions.length > 0 || canRefund || order.refundedAt) ? (
           <>
             <div className="flex gap-2 mb-4 flex-wrap">
               {actions.map((action) => (
@@ -221,25 +288,17 @@ export default function OrderDetailPanel({ order, onClose, onStatusChange, onRef
                 </Button>
               ))}
               {canRefund && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setRefundConfirmOpen(true)}
-                  className="flex items-center gap-1"
-                >
-                  <Undo2 size={14} />
-                  Refund
+                <Button variant="destructive" size="sm" onClick={() => setRefundConfirmOpen(true)} className="flex items-center gap-1">
+                  <Undo2 size={14} /> Refund
                 </Button>
               )}
               {order.refundedAt && (
-                <Badge variant="outline" className="text-sm bg-red-500/20 text-red-400 border-red-500/30">
-                  Refunded
-                </Badge>
+                <Badge variant="outline" className="text-sm bg-red-500/20 text-red-400 border-red-500/30">Refunded</Badge>
               )}
             </div>
             <Separator className="mb-4" />
           </>
-        )}
+        ) : null}
 
         {/* Refund Confirmation Dialog with PIN */}
         <Dialog open={refundConfirmOpen} onOpenChange={setRefundConfirmOpen}>
@@ -291,6 +350,26 @@ export default function OrderDetailPanel({ order, onClose, onStatusChange, onRef
               </Button>
               <Button variant="destructive" onClick={handleRefund} disabled={refunding || !pinVerified}>
                 {refunding ? 'Processing...' : 'Refund'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Delete Order</DialogTitle>
+              <DialogDescription>
+                Permanently delete order #{order.displayId} ({formatMoney(order.totalMoney)})? This cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)} disabled={deleting}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                {deleting ? 'Deleting...' : 'Delete'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -376,6 +455,14 @@ export default function OrderDetailPanel({ order, onClose, onStatusChange, onRef
               <span>Total</span>
               <span>{formatMoney(order.totalMoney)}</span>
             </div>
+            {(order.paymentMethod || order.paymentSource) && (
+              <div className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
+                <span className="capitalize">{order.paymentSource ?? ''}</span>
+                {order.paymentMethod && <span>· {order.paymentMethod}</span>}
+                {order.cardBrand && <span>· {order.cardBrand}</span>}
+                {order.cardLast4 && <span>· •••• {order.cardLast4}</span>}
+              </div>
+            )}
           </div>
         </section>
 

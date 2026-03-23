@@ -111,6 +111,8 @@ export interface KDSOrder {
   createdAt: string;
   updatedAt: string;
   paymentSource?: string;  // 'stripe' | 'square' | 'cash'
+  cardBrand?: string;      // 'VISA' | 'MASTERCARD' | 'AMERICAN_EXPRESS' | ...
+  cardLast4?: string;      // '4242'
   duplicateOf?: string;    // 중복 주문인 경우, 원본 주문의 displayId
   refundedAt?: string;     // 환불된 시각
   startedAt?: string;    // IN_PROGRESS로 처음 전환된 시각

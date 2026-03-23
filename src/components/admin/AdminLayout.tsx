@@ -7,7 +7,7 @@ export default function AdminLayout() {
     <div className="h-screen flex flex-col bg-background">
       <AdminHeader />
       <main className="flex-1 min-h-0 overflow-auto">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-5xl mx-auto">
           <Outlet />
         </div>
       </main>

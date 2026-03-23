@@ -132,6 +132,7 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
   const [dailyCompare, setDailyCompare] = useState<CompareEntry[]>([]);
   const [dailyHourly, setDailyHourly] = useState<HourlyData[]>([]);
   const [dailySources, setDailySources] = useState<SourceData[]>([]);
+  const [dailyPaymentMethods, setDailyPaymentMethods] = useState<SourceData[]>([]);
   const [dailyItems, setDailyItems] = useState<ItemData[]>([]);
 
   // Weekly state
@@ -141,6 +142,7 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
   const [weeklyCompare, setWeeklyCompare] = useState<CompareEntry[]>([]);
   const [weeklyHourly, setWeeklyHourly] = useState<HourlyData[]>([]);
   const [weeklySources, setWeeklySources] = useState<SourceData[]>([]);
+  const [weeklyPaymentMethods, setWeeklyPaymentMethods] = useState<SourceData[]>([]);
   const [weeklyItems, setWeeklyItems] = useState<ItemData[]>([]);
   const [weeklyTrend, setWeeklyTrend] = useState<SalesPoint[]>([]);
 
@@ -156,6 +158,7 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
   const [monthlyCompare, setMonthlyCompare] = useState<CompareEntry[]>([]);
   const [monthlyHourly, setMonthlyHourly] = useState<HourlyData[]>([]);
   const [monthlySources, setMonthlySources] = useState<SourceData[]>([]);
+  const [monthlyPaymentMethods, setMonthlyPaymentMethods] = useState<SourceData[]>([]);
   const [monthlyItems, setMonthlyItems] = useState<ItemData[]>([]);
 
   const base = restaurantCode ? `${SERVER_URL}/api/analytics/${restaurantCode.toLowerCase()}` : '';
@@ -166,20 +169,22 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
     setLoading(true);
     try {
       const params = `from=${dailyDate}&to=${dailyDate}`;
-      const [sumRes, compRes, hourRes, srcRes, itemRes] = await Promise.all([
+      const [sumRes, compRes, hourRes, srcRes, pmRes, itemRes] = await Promise.all([
         fetch(`${base}/summary?${params}`),
         fetch(`${base}/compare?date=${dailyDate}&mode=day`),
         fetch(`${base}/hourly?${params}`),
         fetch(`${base}/sources?${params}`),
+        fetch(`${base}/payment-methods?${params}`),
         fetch(`${base}/items?${params}&limit=8`),
       ]);
-      const [sum, comp, hour, src, items] = await Promise.all([
-        sumRes.json(), compRes.json(), hourRes.json(), srcRes.json(), itemRes.json(),
+      const [sum, comp, hour, src, pm, items] = await Promise.all([
+        sumRes.json(), compRes.json(), hourRes.json(), srcRes.json(), pmRes.json(), itemRes.json(),
       ]);
       setDailySummary(sum);
       setDailyCompare(comp.comparisons || []);
       setDailyHourly((hour.data || []).filter((h: HourlyData) => h.orders > 0));
       setDailySources(src.data || []);
+      setDailyPaymentMethods((pm.data || []).map((d: any) => ({ source: d.method, orders: d.orders, revenue: d.revenue, commission: 0 })));
       setDailyItems(items.data || []);
     } catch (err) {
       console.error('[Dashboard] daily fetch failed:', err);
@@ -197,21 +202,23 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
       const params = `from=${weekStart}&to=${weekEnd}`;
       const midWeek = shiftDate(weekStart, 3);
       // Core data first (fast), forecast + trend in background (slow)
-      const [sumRes, compRes, hourRes, srcRes, itemRes] = await Promise.all([
+      const [sumRes, compRes, hourRes, srcRes, pmRes, itemRes] = await Promise.all([
         fetch(`${base}/summary?${params}`),
         fetch(`${base}/compare?date=${midWeek}&mode=week`),
         fetch(`${base}/hourly?${params}`),
         fetch(`${base}/sources?${params}`),
+        fetch(`${base}/payment-methods?${params}`),
         fetch(`${base}/items?${params}&limit=8`),
       ]);
-      const [sum, comp, hour, src, items] = await Promise.all([
-        sumRes.json(), compRes.json(), hourRes.json(), srcRes.json(), itemRes.json(),
+      const [sum, comp, hour, src, pm, items] = await Promise.all([
+        sumRes.json(), compRes.json(), hourRes.json(), srcRes.json(), pmRes.json(), itemRes.json(),
       ]);
       setWeeklySummary(sum);
       setWeeklyBreakdown(comp.dailyBreakdown || []);
       setWeeklyCompare(comp.comparisons || []);
       setWeeklyHourly((hour.data || []).filter((h: HourlyData) => h.orders > 0));
       setWeeklySources(src.data || []);
+      setWeeklyPaymentMethods((pm.data || []).map((d: any) => ({ source: d.method, orders: d.orders, revenue: d.revenue, commission: 0 })));
       setWeeklyItems(items.data || []);
 
       // Trend in background (don't block UI)
@@ -235,20 +242,22 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
       const lastDay = new Date(y, m, 0).getDate();
       const toDate = `${monthStr}-${String(lastDay).padStart(2, '0')}`;
       const params = `from=${fromDate}&to=${toDate}`;
-      const [sumRes, compRes, hourRes, srcRes, itemRes] = await Promise.all([
+      const [sumRes, compRes, hourRes, srcRes, pmRes, itemRes] = await Promise.all([
         fetch(`${base}/summary?${params}`),
         fetch(`${base}/compare?date=${monthStr}&mode=month`),
         fetch(`${base}/hourly?${params}`),
         fetch(`${base}/sources?${params}`),
+        fetch(`${base}/payment-methods?${params}`),
         fetch(`${base}/items?${params}&limit=8`),
       ]);
-      const [sum, comp, hour, src, items] = await Promise.all([
-        sumRes.json(), compRes.json(), hourRes.json(), srcRes.json(), itemRes.json(),
+      const [sum, comp, hour, src, pm, items] = await Promise.all([
+        sumRes.json(), compRes.json(), hourRes.json(), srcRes.json(), pmRes.json(), itemRes.json(),
       ]);
       setMonthlySummary(sum);
       setMonthlyCompare(comp.comparisons || []);
       setMonthlyHourly((hour.data || []).filter((h: HourlyData) => h.orders > 0));
       setMonthlySources(src.data || []);
+      setMonthlyPaymentMethods((pm.data || []).map((d: any) => ({ source: d.method, orders: d.orders, revenue: d.revenue, commission: 0 })));
       setMonthlyItems(items.data || []);
     } catch (err) {
       console.error('[Dashboard] monthly fetch failed:', err);
@@ -338,7 +347,10 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
                   <HourlyChart data={dailyHourly} tooltipStyle={tooltipStyle} gridStroke={gridStroke} tickStyle={tickStyle} />
                   <SourcesChart sources={dailySources} tooltipStyle={tooltipStyle} />
                 </div>
-                <ItemsChart items={dailyItems} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <SourcesChart sources={dailyPaymentMethods} tooltipStyle={tooltipStyle} title="Payment Methods" />
+                  <ItemsChart items={dailyItems} />
+                </div>
               </>
             )}
           </TabsContent>
@@ -413,7 +425,10 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
                   <HourlyChart data={weeklyHourly} tooltipStyle={tooltipStyle} gridStroke={gridStroke} tickStyle={tickStyle} />
                   <SourcesChart sources={weeklySources} tooltipStyle={tooltipStyle} />
                 </div>
-                <ItemsChart items={weeklyItems} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <SourcesChart sources={weeklyPaymentMethods} tooltipStyle={tooltipStyle} title="Payment Methods" />
+                  <ItemsChart items={weeklyItems} />
+                </div>
               </>
             )}
           </TabsContent>
@@ -446,7 +461,10 @@ export default function DashboardScreen({ restaurantCode: propCode, theme: propT
                   <HourlyChart data={monthlyHourly} tooltipStyle={tooltipStyle} gridStroke={gridStroke} tickStyle={tickStyle} />
                   <SourcesChart sources={monthlySources} tooltipStyle={tooltipStyle} />
                 </div>
-                <ItemsChart items={monthlyItems} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <SourcesChart sources={monthlyPaymentMethods} tooltipStyle={tooltipStyle} title="Payment Methods" />
+                  <ItemsChart items={monthlyItems} />
+                </div>
               </>
             )}
           </TabsContent>
@@ -726,10 +744,10 @@ function HourlyChart({ data, tooltipStyle, gridStroke, tickStyle }: {
   );
 }
 
-function SourcesChart({ sources, tooltipStyle }: { sources: SourceData[]; tooltipStyle: React.CSSProperties }) {
+function SourcesChart({ sources, tooltipStyle, title = 'Order Sources' }: { sources: SourceData[]; tooltipStyle: React.CSSProperties; title?: string }) {
   return (
     <Card className="p-4 bg-card border-border">
-      <h3 className="text-sm font-medium text-foreground mb-3">Order Sources</h3>
+      <h3 className="text-sm font-medium text-foreground mb-3">{title}</h3>
       <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>

@@ -15,6 +15,10 @@ interface ClockResult {
     clock_in: string;
     clock_out: string | null;
   };
+  voided_entry?: {
+    id: string;
+    clock_in: string;
+  };
 }
 
 interface MyHoursEntry {
@@ -332,6 +336,9 @@ export default function ClockScreen() {
                     Worked: {formatDuration(result.entry.clock_in, result.entry.clock_out!)}
                   </p>
                 </>
+              )}
+              {result.voided_entry && (
+                <p className="text-amber-500 text-xs mt-1">Previous incomplete shift was voided</p>
               )}
             </div>
 
