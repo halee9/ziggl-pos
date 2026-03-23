@@ -1,8 +1,13 @@
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, ChefHat, ShoppingBag, Clock, ClipboardList, Banknote, Monitor, Settings, LogOut, Sun, Moon } from 'lucide-react';
+import { Home, ChefHat, ShoppingBag, Clock, ClipboardList, Banknote, Monitor, Settings, LogOut, Sun, Moon, KeyRound } from 'lucide-react';
 import { useSessionStore } from '../stores/sessionStore';
 import { useKDSStore } from '../stores/kdsStore';
 import { getVisibleNavPaths, getVisibleBottomItems } from '../utils/roles';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Button } from './ui/button';
 
 interface NavItem {
   icon: React.ReactNode;
@@ -18,14 +23,54 @@ export default function Sidebar() {
   const logout = useSessionStore((s) => s.logout);
   const role = useSessionStore((s) => s.role);
   const staffName = useSessionStore((s) => s.staffName);
+  const restaurantCode = useSessionStore((s) => s.restaurantCode);
+  const sessionPin = useSessionStore((s) => s.pin);
   const theme = useSessionStore((s) => s.theme);
   const setTheme = useSessionStore((s) => s.setTheme);
   const setOrders = useKDSStore((s) => s.setOrders);
   const counts = useKDSStore((s) => s.orderCounts)();
 
+  // PIN change dialog state
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
+  const [currentPin, setCurrentPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [pinSaving, setPinSaving] = useState(false);
+
   const handleLogout = () => {
     logout();
     setOrders([]);
+  };
+
+  const handlePinChange = async () => {
+    setPinError('');
+    if (currentPin !== sessionPin) { setPinError('Current PIN is incorrect'); return; }
+    if (newPin.length < 4) { setPinError('New PIN must be at least 4 digits'); return; }
+    if (newPin !== confirmPin) { setPinError('New PINs do not match'); return; }
+    setPinSaving(true);
+    try {
+      const SERVER = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+      // Find staff by name to get ID
+      const listRes = await fetch(`${SERVER}/api/staff/${restaurantCode}`);
+      const staffList = await listRes.json();
+      const me = staffList.find((s: { name: string }) => s.name === staffName);
+      if (!me) { setPinError('Staff not found'); setPinSaving(false); return; }
+      const res = await fetch(`${SERVER}/api/staff/${restaurantCode}/${me.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staff_pin: newPin }),
+      });
+      if (!res.ok) throw new Error('Failed to update PIN');
+      // Update session pin
+      useSessionStore.setState({ pin: newPin });
+      setPinDialogOpen(false);
+      setCurrentPin(''); setNewPin(''); setConfirmPin('');
+    } catch {
+      setPinError('Failed to save. Try again.');
+    } finally {
+      setPinSaving(false);
+    }
   };
 
   // 역할별 상단 네비게이션 필터
@@ -102,6 +147,19 @@ export default function Sidebar() {
         </div>
       )}
 
+      {/* Change PIN */}
+      {staffName && (
+        <button
+          onClick={() => { setPinDialogOpen(true); setPinError(''); setCurrentPin(''); setNewPin(''); setConfirmPin(''); }}
+          className="group relative w-11 h-11 flex items-center justify-center rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-secondary/50 mb-1"
+        >
+          <KeyRound size={20} />
+          <span className="absolute left-full ml-2 px-2 py-1 rounded bg-popover text-popover-foreground text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity shadow-lg border border-border z-50">
+            Change PIN
+          </span>
+        </button>
+      )}
+
       {/* Theme toggle */}
       <button
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -133,6 +191,34 @@ export default function Sidebar() {
           </button>
         ))}
       </nav>
+      {/* PIN Change Dialog */}
+      <Dialog open={pinDialogOpen} onOpenChange={setPinDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Change PIN</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 pt-2">
+            <div className="flex flex-col gap-1.5">
+              <Label>Current PIN</Label>
+              <Input type="password" value={currentPin} onChange={e => setCurrentPin(e.target.value.replace(/\D/g, ''))} placeholder="Current PIN" maxLength={8} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>New PIN</Label>
+              <Input type="password" value={newPin} onChange={e => setNewPin(e.target.value.replace(/\D/g, ''))} placeholder="New PIN" maxLength={8} />
+            </div>
+            {newPin && (
+              <div className="flex flex-col gap-1.5">
+                <Label>Confirm New PIN</Label>
+                <Input type="password" value={confirmPin} onChange={e => setConfirmPin(e.target.value.replace(/\D/g, ''))} placeholder="Confirm PIN" maxLength={8} />
+              </div>
+            )}
+            {pinError && <p className="text-sm text-red-500">{pinError}</p>}
+            <Button onClick={handlePinChange} disabled={pinSaving || !currentPin || !newPin}>
+              {pinSaving ? 'Saving...' : 'Update PIN'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
