@@ -295,6 +295,11 @@ function ActiveOrderRow({
         <span className={`font-bold px-2 py-0.5 rounded shrink-0 ${sourceBadge}`} style={{ fontSize: '16px' }}>
           {order.source}
         </span>
+        {order.paymentMethod === 'CASH' && (
+          <span className="text-base font-bold px-2 py-0.5 rounded shrink-0 bg-amber-600 text-white flex items-center gap-1">
+            <Banknote className="h-4 w-4" /> CASH
+          </span>
+        )}
         {order.duplicateOf && (
           <span className="text-base font-bold px-2 py-0.5 rounded shrink-0 bg-red-600 text-white flex items-center gap-0.5 animate-pulse">
             <AlertTriangle className="h-4 w-4" /> Dup #{order.duplicateOf}
