@@ -76,7 +76,7 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
   );
 
   return (
-    <div className="h-full flex flex-col bg-background font-kds">
+    <div className="h-full flex flex-col bg-background">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-border">
         <div className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: READY orders (KDS card style) */}
-        <div className="w-1/2 border-r border-border flex flex-col">
+        <div className="w-1/2 border-r border-border flex flex-col font-kds">
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
             <span className="text-base font-bold">Ready for Pickup</span>
             {readyOrders.length > 0 && (
