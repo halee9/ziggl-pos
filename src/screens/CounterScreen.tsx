@@ -5,6 +5,7 @@ import { useKDSStore } from '../stores/kdsStore';
 import { formatMoney } from '../utils';
 import CashTenderDialog from '../components/CashTenderDialog';
 import OrderTicketModal from '../components/OrderTicketModal';
+import OrderCard from '../components/OrderCard';
 import type { KDSOrder } from '../types';
 
 interface Props {
@@ -133,36 +134,12 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
               </div>
             ) : (
               readyOrders.map((order) => (
-                <div
+                <OrderCard
                   key={order.id}
-                  className="rounded-xl border-2 border-green-500/40 bg-card p-4 cursor-pointer hover:bg-secondary/50 transition-colors"
-                  onClick={() => setDetailOrder(order)}
-                >
-                  {/* Top: number + source + name */}
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-3xl font-black text-green-500">#{order.displayId}</span>
-                    <span className={`text-xs font-bold text-white px-2 py-0.5 rounded ${sourceColor[order.source] ?? 'bg-gray-600'}`}>
-                      {order.source}
-                    </span>
-                    <span className="text-lg font-semibold flex-1 truncate">{order.displayName}</span>
-                    <span className="text-lg font-bold">{formatMoney(order.totalMoney)}</span>
-                  </div>
-                  {/* Items */}
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground mb-3">
-                    {order.lineItems.map((item, i) => (
-                      <span key={i}>
-                        {item.name}{Number(item.quantity) > 1 ? ` ×${item.quantity}` : ''}
-                      </span>
-                    ))}
-                  </div>
-                  {/* Pickup button */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handlePickup(order.id); }}
-                    className="w-full py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-white text-base font-bold flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <Check size={20} /> Picked Up
-                  </button>
-                </div>
+                  order={order}
+                  onUpdateStatus={onUpdateStatus}
+                  onPrint={() => {}}
+                />
               ))
             )}
           </div>
