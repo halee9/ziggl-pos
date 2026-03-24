@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Calendar, ChevronDown, ChevronRight, CornerUpLeft, Printer, Check, Info, Banknote, Inbox, Clock } from 'lucide-react';
+import { AlertTriangle, Calendar, ChevronDown, ChevronRight, CornerUpLeft, Printer, Check, Info, Banknote, Inbox, Clock, Flag, FileText } from 'lucide-react';
 import type { KDSOrder, OrderStatus } from '../types';
 import { getItemDisplay, getModifierDisplay, mergeLineItems, formatElapsed, formatDuration, getElapsedMinutes } from '../utils';
 import { useKDSStore } from '../stores/kdsStore';
@@ -303,6 +303,21 @@ function ActiveOrderRow({
         {order.duplicateOf && (
           <span className="text-base font-bold px-2 py-0.5 rounded shrink-0 bg-red-600 text-white flex items-center gap-0.5 animate-pulse">
             <AlertTriangle className="h-4 w-4" /> Dup #{order.duplicateOf}
+          </span>
+        )}
+        {order.flag === 'unclaimed' && (
+          <span className="text-xs font-bold px-2 py-0.5 rounded shrink-0 bg-red-600 text-white flex items-center gap-0.5">
+            <Flag className="h-3 w-3" /> Unclaimed
+          </span>
+        )}
+        {order.flag === 'issue' && (
+          <span className="text-xs font-bold px-2 py-0.5 rounded shrink-0 bg-orange-600 text-white flex items-center gap-0.5">
+            <AlertTriangle className="h-3 w-3" /> Issue
+          </span>
+        )}
+        {order.flag === 'refund_evidence' && (
+          <span className="text-xs font-bold px-2 py-0.5 rounded shrink-0 bg-purple-600 text-white flex items-center gap-0.5">
+            <FileText className="h-3 w-3" /> Evidence
           </span>
         )}
         <button
