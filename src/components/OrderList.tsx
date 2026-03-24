@@ -305,17 +305,17 @@ function ActiveOrderRow({
             <AlertTriangle className="h-4 w-4" /> Dup #{order.duplicateOf}
           </span>
         )}
-        {order.flag === 'unclaimed' && (
+        {order.flag?.includes('unclaimed') && (
           <span className="text-xs font-bold px-2 py-0.5 rounded shrink-0 bg-red-600 text-white flex items-center gap-0.5">
             <Flag className="h-3 w-3" /> Unclaimed
           </span>
         )}
-        {order.flag === 'issue' && (
+        {order.flag?.includes('issue') && (
           <span className="text-xs font-bold px-2 py-0.5 rounded shrink-0 bg-orange-600 text-white flex items-center gap-0.5">
             <AlertTriangle className="h-3 w-3" /> Issue
           </span>
         )}
-        {order.flag === 'refund_evidence' && (
+        {order.flag?.includes('refund_evidence') && (
           <span className="text-xs font-bold px-2 py-0.5 rounded shrink-0 bg-purple-600 text-white flex items-center gap-0.5">
             <FileText className="h-3 w-3" /> Evidence
           </span>

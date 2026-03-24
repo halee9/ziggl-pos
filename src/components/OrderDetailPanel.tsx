@@ -175,23 +175,26 @@ function OrderNoteSection({ order }: { order: KDSOrder }) {
 function OrderFlagSection({ order }: { order: KDSOrder }) {
   const { restaurantCode } = useSessionStore();
   const [saving, setSaving] = useState(false);
-  const [localFlag, setLocalFlag] = useState(order.flag);
+  const [localFlags, setLocalFlags] = useState<string[]>(order.flag ?? []);
 
-  useEffect(() => { setLocalFlag(order.flag); }, [order.flag]);
+  useEffect(() => { setLocalFlags(order.flag ?? []); }, [order.flag]);
 
-  const toggle = async (flag: KDSOrder['flag'] & string) => {
-    const newFlag: KDSOrder['flag'] = localFlag === flag ? null : flag;
-    setLocalFlag(newFlag);  // optimistic
+  const toggle = async (flag: string) => {
+    const prev = localFlags;
+    const next = localFlags.includes(flag)
+      ? localFlags.filter(f => f !== flag)
+      : [...localFlags, flag];
+    setLocalFlags(next);  // optimistic
     setSaving(true);
     try {
       await fetch(`${SERVER_URL}/api/orders/${order.id}/flag`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flag: newFlag, restaurantCode }),
+        body: JSON.stringify({ flag, restaurantCode }),
       });
     } catch (err) {
       console.error('Failed to set flag:', err);
-      setLocalFlag(order.flag);  // rollback
+      setLocalFlags(prev);  // rollback
     }
     setSaving(false);
   };
@@ -206,7 +209,7 @@ function OrderFlagSection({ order }: { order: KDSOrder }) {
             disabled={saving}
             onClick={() => toggle(f.value)}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-              localFlag === f.value ? f.className : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              localFlags.includes(f.value) ? f.className : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
           >
             {f.icon} {f.label}

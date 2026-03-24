@@ -333,9 +333,9 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                       <span className="font-mono font-bold text-sm">#{order.displayId}</span>
                       {sourceBadge(order.source)}
                       {order.paymentMethod === 'CASH' && <Badge className="bg-amber-600 text-white border-0 text-xs flex items-center gap-0.5"><Banknote className="h-3 w-3" />CASH</Badge>}
-                      {order.flag === 'unclaimed' && <Badge className="bg-red-600 text-white border-0 text-xs flex items-center gap-0.5"><Flag className="h-3 w-3" />Unclaimed</Badge>}
-                      {order.flag === 'issue' && <Badge className="bg-orange-600 text-white border-0 text-xs flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" />Issue</Badge>}
-                      {order.flag === 'refund_evidence' && <Badge className="bg-purple-600 text-white border-0 text-xs flex items-center gap-0.5"><FileText className="h-3 w-3" />Evidence</Badge>}
+                      {order.flag?.includes('unclaimed') && <Badge className="bg-red-600 text-white border-0 text-xs flex items-center gap-0.5"><Flag className="h-3 w-3" />Unclaimed</Badge>}
+                      {order.flag?.includes('issue') && <Badge className="bg-orange-600 text-white border-0 text-xs flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" />Issue</Badge>}
+                      {order.flag?.includes('refund_evidence') && <Badge className="bg-purple-600 text-white border-0 text-xs flex items-center gap-0.5"><FileText className="h-3 w-3" />Evidence</Badge>}
                     </div>
                     <div className="flex items-center gap-1">
                       {statusBadge(order.status)}
@@ -381,9 +381,9 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                   >
                     <td className="px-4 py-3 font-mono font-bold flex items-center gap-1.5">
                       #{order.displayId}
-                      {order.flag === 'unclaimed' && <Badge className="bg-red-600 text-white border-0 text-xs flex items-center gap-0.5"><Flag className="h-3 w-3" /></Badge>}
-                      {order.flag === 'issue' && <Badge className="bg-orange-600 text-white border-0 text-xs flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" /></Badge>}
-                      {order.flag === 'refund_evidence' && <Badge className="bg-purple-600 text-white border-0 text-xs flex items-center gap-0.5"><FileText className="h-3 w-3" /></Badge>}
+                      {order.flag?.includes('unclaimed') && <Badge className="bg-red-600 text-white border-0 text-xs flex items-center gap-0.5"><Flag className="h-3 w-3" /></Badge>}
+                      {order.flag?.includes('issue') && <Badge className="bg-orange-600 text-white border-0 text-xs flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" /></Badge>}
+                      {order.flag?.includes('refund_evidence') && <Badge className="bg-purple-600 text-white border-0 text-xs flex items-center gap-0.5"><FileText className="h-3 w-3" /></Badge>}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground max-w-[150px] truncate">
                       {order.displayName || 'Guest'}

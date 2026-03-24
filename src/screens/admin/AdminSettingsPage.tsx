@@ -32,6 +32,8 @@ export default function AdminSettingsPage() {
   const [enableCoinCounting, setEnableCoinCounting] = useState(config.enable_coin_counting ?? false);
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
+  const [managerPin, setManagerPin] = useState(config.manager_pin ?? '');
+  const [staffPin, setStaffPin] = useState(config.staff_pin ?? '');
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -72,6 +74,8 @@ export default function AdminSettingsPage() {
           enable_coin_counting: enableCoinCounting,
           session_timeout_minutes: parsedTimeout,
           settings_pin: effectivePin,
+          manager_pin: managerPin.trim() || null,
+          staff_pin: staffPin.trim() || null,
           logo_style: logoStyle,
         }),
       });
@@ -211,20 +215,31 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Change PIN */}
+        {/* POS PINs */}
         <Card>
-          <CardHeader><CardTitle className="text-sm uppercase tracking-wider">Change PIN</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm uppercase tracking-wider">POS Access PINs</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="newpin">New PIN (leave blank to keep current)</Label>
-              <Input id="newpin" type="password" value={newPin} onChange={e => setNewPin(e.target.value)} placeholder="New PIN" maxLength={8} className="h-11" />
+              <Label htmlFor="ownerpin">Owner PIN (leave blank to keep current)</Label>
+              <Input id="ownerpin" type="password" value={newPin} onChange={e => setNewPin(e.target.value)} placeholder="Current owner PIN unchanged" maxLength={8} className="h-11" />
             </div>
             {newPin && (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="confirmpin">Confirm New PIN</Label>
+                <Label htmlFor="confirmpin">Confirm Owner PIN</Label>
                 <Input id="confirmpin" type="password" value={confirmPin} onChange={e => setConfirmPin(e.target.value)} placeholder="Confirm PIN" maxLength={8} className="h-11" />
               </div>
             )}
+            <Separator />
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="managerpin">Manager PIN</Label>
+              <Input id="managerpin" value={managerPin} onChange={e => setManagerPin(e.target.value.replace(/\D/g, ''))} placeholder="e.g. 2011" maxLength={8} className="h-11" />
+              <p className="text-xs text-muted-foreground">Used for manager login & refund authorization</p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="staffpin">Staff PIN</Label>
+              <Input id="staffpin" value={staffPin} onChange={e => setStaffPin(e.target.value.replace(/\D/g, ''))} placeholder="e.g. 1234" maxLength={8} className="h-11" />
+              <p className="text-xs text-muted-foreground">Used for staff login</p>
+            </div>
           </CardContent>
         </Card>
 

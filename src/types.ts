@@ -117,7 +117,7 @@ export interface KDSOrder {
   cardLast4?: string;      // '4242'
   duplicateOf?: string;    // 중복 주문인 경우, 원본 주문의 displayId
   refundedAt?: string;     // 환불된 시각
-  flag?: 'unclaimed' | 'issue' | 'refund_evidence' | null;
+  flag?: string[] | null;
   photos?: { url: string; uploaded_at: string }[];
   startedAt?: string;    // IN_PROGRESS로 처음 전환된 시각
   readyAt?: string;      // READY로 처음 전환된 시각

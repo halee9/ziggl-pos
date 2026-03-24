@@ -84,17 +84,17 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
               <AlertTriangle className="h-3 w-3" /> Duplicate of #{order.duplicateOf}
             </Badge>
           )}
-          {order.flag === 'unclaimed' && (
+          {order.flag?.includes('unclaimed') && (
             <Badge className="shrink-0 text-xs bg-red-600 text-white flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" /> Unclaimed
             </Badge>
           )}
-          {order.flag === 'issue' && (
+          {order.flag?.includes('issue') && (
             <Badge className="shrink-0 text-xs bg-orange-600 text-white flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" /> Issue
             </Badge>
           )}
-          {order.flag === 'refund_evidence' && (
+          {order.flag?.includes('refund_evidence') && (
             <Badge className="shrink-0 text-xs bg-purple-600 text-white flex items-center gap-1">
               <FileText className="h-3 w-3" /> Evidence
             </Badge>
