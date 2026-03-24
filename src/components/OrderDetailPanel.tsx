@@ -174,16 +174,24 @@ function OrderNoteSection({ order }: { order: KDSOrder }) {
 function OrderFlagSection({ order }: { order: KDSOrder }) {
   const { restaurantCode } = useSessionStore();
   const [saving, setSaving] = useState(false);
+  const [localFlag, setLocalFlag] = useState(order.flag);
+
+  useEffect(() => { setLocalFlag(order.flag); }, [order.flag]);
 
   const toggle = async (flag: string) => {
+    const newFlag = localFlag === flag ? null : flag;
+    setLocalFlag(newFlag);  // optimistic
     setSaving(true);
     try {
       await fetch(`${SERVER_URL}/api/orders/${order.id}/flag`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flag: order.flag === flag ? null : flag, restaurantCode }),
+        body: JSON.stringify({ flag: newFlag, restaurantCode }),
       });
-    } catch (err) { console.error('Failed to set flag:', err); }
+    } catch (err) {
+      console.error('Failed to set flag:', err);
+      setLocalFlag(order.flag);  // rollback
+    }
     setSaving(false);
   };
 
@@ -197,7 +205,7 @@ function OrderFlagSection({ order }: { order: KDSOrder }) {
             disabled={saving}
             onClick={() => toggle(f.value)}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-              order.flag === f.value ? f.className : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              localFlag === f.value ? f.className : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
           >
             {f.icon} {f.label}
