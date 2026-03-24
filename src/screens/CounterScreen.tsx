@@ -76,7 +76,7 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
   );
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background font-kds">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-border">
         <div className="flex items-center gap-2">
