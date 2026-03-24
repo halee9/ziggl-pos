@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import {
-  Search, ChevronLeft, ChevronRight, RefreshCw, Filter, X, AlertTriangle, CalendarIcon, Banknote,
+  Search, ChevronLeft, ChevronRight, RefreshCw, Filter, X, AlertTriangle, CalendarIcon, Banknote, Flag, FileText,
 } from 'lucide-react';
 import { Calendar } from '../components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
@@ -333,6 +333,9 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                       <span className="font-mono font-bold text-sm">#{order.displayId}</span>
                       {sourceBadge(order.source)}
                       {order.paymentMethod === 'CASH' && <Badge className="bg-amber-600 text-white border-0 text-xs flex items-center gap-0.5"><Banknote className="h-3 w-3" />CASH</Badge>}
+                      {order.flag === 'unclaimed' && <Badge className="bg-red-600 text-white border-0 text-xs flex items-center gap-0.5"><Flag className="h-3 w-3" />Unclaimed</Badge>}
+                      {order.flag === 'issue' && <Badge className="bg-orange-600 text-white border-0 text-xs flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" />Issue</Badge>}
+                      {order.flag === 'refund_evidence' && <Badge className="bg-purple-600 text-white border-0 text-xs flex items-center gap-0.5"><FileText className="h-3 w-3" />Evidence</Badge>}
                     </div>
                     <div className="flex items-center gap-1">
                       {statusBadge(order.status)}
@@ -376,7 +379,12 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                     onClick={() => setSelectedOrder(order)}
                     className="hover:bg-muted/30 cursor-pointer transition-colors"
                   >
-                    <td className="px-4 py-3 font-mono font-bold">#{order.displayId}</td>
+                    <td className="px-4 py-3 font-mono font-bold flex items-center gap-1.5">
+                      #{order.displayId}
+                      {order.flag === 'unclaimed' && <Badge className="bg-red-600 text-white border-0 text-xs flex items-center gap-0.5"><Flag className="h-3 w-3" /></Badge>}
+                      {order.flag === 'issue' && <Badge className="bg-orange-600 text-white border-0 text-xs flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" /></Badge>}
+                      {order.flag === 'refund_evidence' && <Badge className="bg-purple-600 text-white border-0 text-xs flex items-center gap-0.5"><FileText className="h-3 w-3" /></Badge>}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground max-w-[150px] truncate">
                       {order.displayName || 'Guest'}
                     </td>
