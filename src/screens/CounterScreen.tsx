@@ -5,7 +5,7 @@ import { useKDSStore } from '../stores/kdsStore';
 import { formatMoney } from '../utils';
 import CashTenderDialog from '../components/CashTenderDialog';
 import OrderTicketModal from '../components/OrderTicketModal';
-import { Flag, AlertTriangle, FileText } from 'lucide-react';
+import { ActiveOrderRow } from '../components/OrderList';
 import type { KDSOrder } from '../types';
 
 interface Props {
@@ -35,75 +35,45 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
     .sort((a, b) => new Date(b.completedAt ?? b.updatedAt).getTime() - new Date(a.completedAt ?? a.updatedAt).getTime())
     .slice(0, 20);
 
-  const handlePickup = async (orderId: string) => {
-    await onUpdateStatus(orderId, 'COMPLETED');
-  };
-
   const handleReopen = async (orderId: string) => {
     await onUpdateStatus(orderId, 'READY');
   };
 
-  const OrderRow = ({ order, action }: { order: KDSOrder; action: 'pickup' | 'cash' | 'reopen' }) => {
-    const big = action === 'pickup';
-    return (
-      <div
-        className={`w-full rounded-lg text-left transition-colors ${
-          big ? 'px-4 py-3 hover:bg-secondary/70 cursor-pointer border-b border-border' : 'px-3 py-2.5 hover:bg-secondary/70 cursor-pointer'
-        } ${action === 'reopen' ? 'opacity-60' : ''}`}
-        onClick={() => {
-          if (action === 'pickup') setDetailOrder(order);
-          else if (action === 'cash') setSelectedCashOrder(order);
-          else if (action === 'reopen') setDetailOrder(order);
-        }}
-      >
-        <div className="flex items-center gap-3">
-          {action === 'pickup' ? (
-            <button
-              onClick={(e) => { e.stopPropagation(); handlePickup(order.id); }}
-              className={`font-black text-green-500 hover:bg-green-500/20 rounded-lg transition-colors ${big ? 'text-3xl px-2 py-1' : 'text-lg w-10 text-center py-1'}`}
-              title="Mark as picked up"
-            >
-              {order.displayId}
-            </button>
-          ) : (
-            <span className="text-lg font-bold w-10 text-center text-foreground">{order.displayId}</span>
-          )}
-          <span className={`font-bold text-white px-1.5 py-0.5 rounded ${sourceColor[order.source] ?? 'bg-gray-600'} ${big ? 'text-xs' : 'text-[10px]'}`}>
-            {order.source}
-          </span>
-          {big && order.flag?.includes('unclaimed') && (
-            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-red-600 text-white flex items-center gap-0.5"><Flag className="h-3 w-3" /> Unclaimed</span>
-          )}
-          {big && order.flag?.includes('issue') && (
-            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-orange-600 text-white flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" /> Issue</span>
-          )}
-          {big && order.flag?.includes('refund_evidence') && (
-            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-purple-600 text-white flex items-center gap-0.5"><FileText className="h-3 w-3" /> Evidence</span>
-          )}
-          <span className={`font-semibold flex-1 truncate ${big ? 'text-lg' : 'text-sm'}`}>{order.displayName}</span>
-          <span className={`font-bold ${big ? 'text-lg' : 'text-sm'}`}>{formatMoney(order.totalMoney)}</span>
-          {action === 'pickup' && <Check size={big ? 24 : 18} className="text-green-500" />}
-          {action === 'cash' && <Banknote size={18} className="text-amber-500" />}
-          {action === 'reopen' && (
-            <button
-              onClick={(e) => { e.stopPropagation(); handleReopen(order.id); }}
-              className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-              title="Reopen"
-            >
-              <Undo2 size={14} />
-            </button>
-          )}
-        </div>
-        <div className={`mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-muted-foreground ${big ? 'ml-16 text-sm' : 'ml-13 text-xs'}`}>
-          {order.lineItems.map((item, i) => (
-            <span key={i}>
-              {item.name}{Number(item.quantity) > 1 ? ` ×${item.quantity}` : ''}
-            </span>
-          ))}
-        </div>
+  const OrderRow = ({ order, action }: { order: KDSOrder; action: 'cash' | 'reopen' }) => (
+    <div
+      className={`w-full px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-secondary/70 cursor-pointer ${action === 'reopen' ? 'opacity-60' : ''}`}
+      onClick={() => {
+        if (action === 'cash') setSelectedCashOrder(order);
+        else if (action === 'reopen') setDetailOrder(order);
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-lg font-bold w-10 text-center text-foreground">{order.displayId}</span>
+        <span className={`text-[10px] font-bold text-white px-1.5 py-0.5 rounded ${sourceColor[order.source] ?? 'bg-gray-600'}`}>
+          {order.source}
+        </span>
+        <span className="font-medium text-sm flex-1 truncate">{order.displayName}</span>
+        <span className="font-semibold text-sm">{formatMoney(order.totalMoney)}</span>
+        {action === 'cash' && <Banknote size={18} className="text-amber-500" />}
+        {action === 'reopen' && (
+          <button
+            onClick={(e) => { e.stopPropagation(); handleReopen(order.id); }}
+            className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            title="Reopen"
+          >
+            <Undo2 size={14} />
+          </button>
+        )}
       </div>
-    );
-  };
+      <div className="ml-13 mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+        {order.lineItems.map((item, i) => (
+          <span key={i}>
+            {item.name}{Number(item.quantity) > 1 ? ` ×${item.quantity}` : ''}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -134,14 +104,14 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
               </span>
             )}
           </div>
-          <div className="flex-1 overflow-auto p-2 space-y-0.5">
+          <div className="flex-1 overflow-auto">
             {readyOrders.length === 0 ? (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                 No orders ready
               </div>
             ) : (
               readyOrders.map((order) => (
-                <OrderRow key={order.id} order={order} action="pickup" />
+                <ActiveOrderRow key={order.id} order={order} onUpdateStatus={onUpdateStatus} onPrint={() => {}} />
               ))
             )}
           </div>
@@ -211,3 +181,4 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
     </div>
   );
 }
+

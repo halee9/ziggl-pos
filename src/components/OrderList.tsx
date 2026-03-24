@@ -86,7 +86,7 @@ function prevStatus(status: OrderStatus): OrderStatus | null {
 }
 
 // ── 왼쪽 패널: 활성(IN_PROGRESS) 주문 큰 행 ──────────────────────────────────
-function ActiveOrderRow({
+export function ActiveOrderRow({
   order,
   onUpdateStatus,
   onPrint,
