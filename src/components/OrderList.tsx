@@ -361,6 +361,8 @@ function CompactOrderRow({
   const sourceBadge = SOURCE_VARIANT[order.source] ?? SOURCE_VARIANT['Unknown'];
   const isPendingPayment = order.status === 'PENDING_PAYMENT';
   const isScheduled = order.isScheduled && order.pickupAt;
+  const totalQty = items.reduce((sum, item) => sum + Number(item.quantity), 0);
+  const isBigOrder = totalQty >= 5;
   const [infoOpen, setInfoOpen] = React.useState(false);
 
   function handleAdvance(e: React.MouseEvent) {
@@ -396,6 +398,9 @@ function CompactOrderRow({
           {order.source}
         </span>
         <span className="font-medium text-sm flex-1 truncate">{order.displayName}</span>
+        {isBigOrder && (
+          <span className="text-[9px] font-bold text-white bg-orange-500 px-1 py-0.5 rounded">BIG</span>
+        )}
         {isPendingPayment && (
           <span className="font-semibold text-sm text-amber-400">${((order.totalMoney ?? 0) / 100).toFixed(2)}</span>
         )}
