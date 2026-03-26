@@ -41,6 +41,13 @@ const SOURCE_OPTIONS: { value: string; label: string }[] = [
   { value: 'Square Online', label: 'Square Online' },
 ];
 
+const PAYMENT_OPTIONS: { value: string; label: string }[] = [
+  { value: 'all', label: 'All Payments' },
+  { value: 'stripe', label: 'Stripe' },
+  { value: 'square', label: 'Square' },
+  { value: 'cash', label: 'Cash' },
+];
+
 const LIMIT = 200;
 
 function statusBadge(status: OrderStatus) {
@@ -70,6 +77,17 @@ function sourceBadge(source: OrderSource) {
       {source}
     </span>
   );
+}
+
+function paymentBadge(source?: string) {
+  if (!source) return <span className="text-xs text-muted-foreground">—</span>;
+  const map: Record<string, { label: string; className: string }> = {
+    stripe:  { label: 'Stripe',  className: 'bg-violet-500/20 text-violet-400' },
+    square:  { label: 'Square',  className: 'bg-blue-500/20 text-blue-400' },
+    cash:    { label: 'Cash',    className: 'bg-amber-500/20 text-amber-400' },
+  };
+  const s = map[source] ?? { label: source, className: 'bg-muted text-muted-foreground' };
+  return <span className={`text-xs px-2 py-0.5 rounded-full ${s.className}`}>{s.label}</span>;
 }
 
 function formatMoney(cents: number) {
@@ -106,6 +124,7 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [paymentFilter, setPaymentFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -126,6 +145,7 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
       params.set('limit', String(LIMIT));
       if (statusFilter !== 'all') params.set('status', statusFilter);
       if (sourceFilter !== 'all') params.set('source', sourceFilter);
+      if (paymentFilter !== 'all') params.set('paymentSource', paymentFilter);
       if (search) params.set('search', search);
       if (dateFrom) params.set('from', dateFrom);
       if (dateTo) params.set('to', dateTo);
@@ -142,7 +162,7 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
     } finally {
       setLoading(false);
     }
-  }, [restaurantCode, page, statusFilter, sourceFilter, search, dateFrom, dateTo]);
+  }, [restaurantCode, page, statusFilter, sourceFilter, paymentFilter, search, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchOrders();
@@ -161,6 +181,7 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
   const clearFilters = () => {
     setStatusFilter('all');
     setSourceFilter('all');
+    setPaymentFilter('all');
     setSearch('');
     setSearchInput('');
     setDateFrom('');
@@ -168,7 +189,7 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
     setPage(1);
   };
 
-  const hasActiveFilters = statusFilter !== 'all' || sourceFilter !== 'all' || search || dateFrom || dateTo;
+  const hasActiveFilters = statusFilter !== 'all' || sourceFilter !== 'all' || paymentFilter !== 'all' || search || dateFrom || dateTo;
 
   const itemSummary = (order: KDSOrder) => {
     const count = order.lineItems.reduce((sum, li) => sum + parseInt(li.quantity || '1'), 0);
@@ -258,6 +279,20 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
               </Select>
             </div>
 
+            <div className="min-w-[140px]">
+              <label className="text-xs text-muted-foreground mb-1 block">Payment</label>
+              <Select value={paymentFilter} onValueChange={(v) => { setPaymentFilter(v); setPage(1); }}>
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">From</label>
               <Popover>
@@ -332,6 +367,7 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-sm">#{order.displayId}</span>
                       {sourceBadge(order.source)}
+                      {paymentBadge(order.paymentSource)}
                       {order.paymentMethod === 'CASH' && <Badge className="bg-amber-600 text-white border-0 text-xs flex items-center gap-0.5"><Banknote className="h-3 w-3" />CASH</Badge>}
                       {order.flag?.includes('unclaimed') && <Badge className="bg-red-600 text-white border-0 text-xs flex items-center gap-0.5"><Flag className="h-3 w-3" />Unclaimed</Badge>}
                       {order.flag?.includes('issue') && <Badge className="bg-orange-600 text-white border-0 text-xs flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" />Issue</Badge>}
@@ -369,6 +405,7 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                   <th className="px-4 py-2 font-medium text-right">Total</th>
                   <th className="px-4 py-2 font-medium">Status</th>
                   <th className="px-4 py-2 font-medium">Source</th>
+                  <th className="px-4 py-2 font-medium">Payment</th>
                   <th className="px-4 py-2 font-medium">Time</th>
                 </tr>
               </thead>
@@ -406,6 +443,9 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                         {sourceBadge(order.source)}
                         {order.paymentMethod === 'CASH' && <Badge className="bg-amber-600 text-white border-0 text-xs flex items-center gap-0.5"><Banknote className="h-3 w-3" />CASH</Badge>}
                       </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {paymentBadge(order.paymentSource)}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
                       {formatTime(order.createdAt)}
