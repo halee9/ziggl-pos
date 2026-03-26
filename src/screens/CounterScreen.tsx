@@ -22,29 +22,20 @@ const sourceColor: Record<string, string> = {
   Grubhub: 'bg-orange-600',
 };
 
-export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectCash }: Props) {
-  const navigate = useNavigate();
-  const orders = useKDSStore((s) => s.orders);
-  const [selectedCashOrder, setSelectedCashOrder] = useState<KDSOrder | null>(null);
-  const [detailOrder, setDetailOrder] = useState<KDSOrder | null>(null);
-
-  const readyOrders = orders.filter((o) => o.status === 'READY');
-  const cashDueOrders = orders.filter((o) => o.status === 'PENDING_PAYMENT');
-  const completedOrders = orders
-    .filter((o) => o.status === 'COMPLETED')
-    .sort((a, b) => new Date(b.completedAt ?? b.updatedAt).getTime() - new Date(a.completedAt ?? a.updatedAt).getTime())
-    .slice(0, 20);
-
-  const handleReopen = async (orderId: string) => {
-    await onUpdateStatus(orderId, 'READY');
-  };
-
-  const OrderRow = ({ order, action }: { order: KDSOrder; action: 'cash' | 'reopen' }) => (
+/* OrderRow extracted outside to prevent unmount/remount on parent re-render */
+function OrderRow({ order, action, onCash, onDetail, onReopen }: {
+  order: KDSOrder;
+  action: 'cash' | 'reopen';
+  onCash: (order: KDSOrder) => void;
+  onDetail: (order: KDSOrder) => void;
+  onReopen: (orderId: string) => void;
+}) {
+  return (
     <div
       className={`w-full px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-secondary/70 cursor-pointer ${action === 'reopen' ? 'opacity-60' : ''}`}
       onClick={() => {
-        if (action === 'cash') setSelectedCashOrder(order);
-        else if (action === 'reopen') setDetailOrder(order);
+        if (action === 'cash') onCash(order);
+        else if (action === 'reopen') onDetail(order);
       }}
     >
       <div className="flex items-center gap-3">
@@ -57,7 +48,7 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
         {action === 'cash' && <Banknote size={18} className="text-amber-500" />}
         {action === 'reopen' && (
           <button
-            onClick={(e) => { e.stopPropagation(); handleReopen(order.id); }}
+            onClick={(e) => { e.stopPropagation(); onReopen(order.id); }}
             className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
             title="Reopen"
           >
@@ -74,6 +65,24 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
       </div>
     </div>
   );
+}
+
+export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectCash }: Props) {
+  const navigate = useNavigate();
+  const orders = useKDSStore((s) => s.orders);
+  const [selectedCashOrder, setSelectedCashOrder] = useState<KDSOrder | null>(null);
+  const [detailOrder, setDetailOrder] = useState<KDSOrder | null>(null);
+
+  const readyOrders = orders.filter((o) => o.status === 'READY');
+  const cashDueOrders = orders.filter((o) => o.status === 'PENDING_PAYMENT');
+  const completedOrders = orders
+    .filter((o) => o.status === 'COMPLETED')
+    .sort((a, b) => new Date(b.completedAt ?? b.updatedAt).getTime() - new Date(a.completedAt ?? a.updatedAt).getTime())
+    .slice(0, 20);
+
+  const handleReopen = async (orderId: string) => {
+    await onUpdateStatus(orderId, 'READY');
+  };
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -131,7 +140,7 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
               </div>
               <div className="p-2 space-y-0.5">
                 {cashDueOrders.map((order) => (
-                  <OrderRow key={order.id} order={order} action="cash" />
+                  <OrderRow key={order.id} order={order} action="cash" onCash={setSelectedCashOrder} onDetail={setDetailOrder} onReopen={handleReopen} />
                 ))}
               </div>
             </div>
@@ -147,7 +156,7 @@ export default function CashierScreen({ onUpdateStatus, onConfirmCash, onRejectC
               </div>
               <div className="p-2 space-y-0.5">
                 {completedOrders.map((order) => (
-                  <OrderRow key={order.id} order={order} action="reopen" />
+                  <OrderRow key={order.id} order={order} action="reopen" onCash={setSelectedCashOrder} onDetail={setDetailOrder} onReopen={handleReopen} />
                 ))}
               </div>
             </div>
