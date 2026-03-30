@@ -165,10 +165,10 @@ describe('AdminLiveDashboardPage', () => {
   it('displays sales summary cards after loading', async () => {
     renderPage();
     await waitFor(() => {
-      expect(screen.getByText('$1,500')).toBeInTheDocument();   // totalRevenue 150000 cents (>=100000 → no decimals)
-      expect(screen.getByText('$1,150')).toBeInTheDocument();   // netRevenue 115000 cents
-      expect(screen.getByText('$180.00')).toBeInTheDocument();  // tips 18000 cents (<100000 → with decimals)
-      expect(screen.getByText('25')).toBeInTheDocument();        // orders
+      expect(screen.getByText('$1,500')).toBeInTheDocument();       // totalRevenue
+      expect(screen.getByText(/Net \$1,150/)).toBeInTheDocument();  // netRevenue (smaller text)
+      expect(screen.getByText('25')).toBeInTheDocument();            // orders
+      expect(screen.getByText(/Tips \$180\.00/)).toBeInTheDocument(); // tips (smaller text)
     });
   });
 
@@ -316,11 +316,11 @@ describe('AdminLiveDashboardPage', () => {
 
     renderPage();
     await waitFor(() => {
-      // totalRevenue, netRevenue, tips all show $0.00
-      const zeroValues = screen.getAllByText('$0.00');
-      expect(zeroValues.length).toBe(3);
-      // orders shows 0
-      expect(screen.getByText('0')).toBeInTheDocument();
+      // Revenue card shows $0.00
+      expect(screen.getByText('$0.00')).toBeInTheDocument();
+      // Orders card shows 0
+      const zeros = screen.getAllByText('0');
+      expect(zeros.length).toBeGreaterThanOrEqual(1);
     });
   });
 });

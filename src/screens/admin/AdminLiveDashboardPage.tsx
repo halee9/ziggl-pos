@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { RefreshCw, DollarSign, TrendingUp, HandCoins, ShoppingCart, ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
@@ -28,6 +28,7 @@ interface Summary {
   totalCommission: number;
   netRevenue: number;
   canceledOrders: number;
+  refundedOrders: number;
 }
 
 interface HourlyData { hour: number; orders: number; revenue: number }
@@ -288,33 +289,24 @@ export default function AdminLiveDashboardPage() {
         )}
       </div>
 
-      {/* Staff Clock Status */}
-      <Card className="p-4 bg-card border-border">
-        <h3 className="text-sm font-medium text-foreground mb-3">{isToday ? 'Staff Today' : `Staff — ${formatDateDisplay(selectedDate)}`}</h3>
-        {staffStatus.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No active staff</p>
-        ) : (
-          <div className="space-y-2">
-            {staffStatus.map((s) => (
-              <div key={s.id} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    s.status === 'in' ? 'bg-green-500' :
-                    s.status === 'out' ? 'bg-gray-400' :
-                    'bg-muted'
-                  }`} />
-                  <span className={s.status === 'absent' ? 'text-muted-foreground' : 'text-foreground'}>{s.name}</span>
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {s.status === 'in' && s.clockIn ? `In since ${formatTime(s.clockIn, tz)}` : ''}
-                  {s.status === 'out' && s.clockIn ? `${formatTime(s.clockIn, tz)} — ${formatTime(s.clockOut!, tz)}` : ''}
-                  {s.status === 'absent' ? 'Not clocked in' : ''}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
+      {/* Sales Summary — 3 cards in a row */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="p-3 bg-card border-border">
+          <span className="text-xs text-muted-foreground">Revenue</span>
+          <p className="text-lg font-bold text-foreground">{formatMoney(summary?.totalRevenue ?? 0)}</p>
+          <p className="text-xs text-muted-foreground">Net {formatMoney(summary?.netRevenue ?? 0)}</p>
+        </Card>
+        <Card className="p-3 bg-card border-border">
+          <span className="text-xs text-muted-foreground">Orders</span>
+          <p className="text-lg font-bold text-foreground">{summary?.totalOrders ?? 0}</p>
+          <p className="text-xs text-muted-foreground">Tips {formatMoney(summary?.totalTips ?? 0)}</p>
+        </Card>
+        <Card className="p-3 bg-card border-border">
+          <span className="text-xs text-muted-foreground">Canceled</span>
+          <p className="text-lg font-bold text-foreground">{summary?.canceledOrders ?? 0}</p>
+          <p className="text-xs text-muted-foreground">Refund {summary?.refundedOrders ?? 0}</p>
+        </Card>
+      </div>
 
       {/* Active Orders */}
       <Card className="p-4 bg-card border-border">
@@ -349,13 +341,33 @@ export default function AdminLiveDashboardPage() {
         )}
       </Card>
 
-      {/* Sales Summary */}
-      <div className="grid grid-cols-2 gap-3">
-        <MetricCard icon={DollarSign} label="Total Revenue" value={formatMoney(summary?.totalRevenue ?? 0)} />
-        <MetricCard icon={TrendingUp} label="Net Revenue" value={formatMoney(summary?.netRevenue ?? 0)} />
-        <MetricCard icon={HandCoins} label="Tips" value={formatMoney(summary?.totalTips ?? 0)} />
-        <MetricCard icon={ShoppingCart} label="Orders" value={String(summary?.totalOrders ?? 0)} />
-      </div>
+      {/* Staff Clock Status */}
+      <Card className="p-4 bg-card border-border">
+        <h3 className="text-sm font-medium text-foreground mb-3">{isToday ? 'Staff Today' : `Staff — ${formatDateDisplay(selectedDate)}`}</h3>
+        {staffStatus.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No active staff</p>
+        ) : (
+          <div className="space-y-2">
+            {staffStatus.map((s) => (
+              <div key={s.id} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    s.status === 'in' ? 'bg-green-500' :
+                    s.status === 'out' ? 'bg-gray-400' :
+                    'bg-muted'
+                  }`} />
+                  <span className={s.status === 'absent' ? 'text-muted-foreground' : 'text-foreground'}>{s.name}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {s.status === 'in' && s.clockIn ? `In since ${formatTime(s.clockIn, tz)}` : ''}
+                  {s.status === 'out' && s.clockIn ? `${formatTime(s.clockIn, tz)} — ${formatTime(s.clockOut!, tz)}` : ''}
+                  {s.status === 'absent' ? 'Not clocked in' : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       {/* Hourly Sales */}
       <Card className="p-4 bg-card border-border">
@@ -503,19 +515,5 @@ export default function AdminLiveDashboardPage() {
         }}
       />
     </div>
-  );
-}
-
-// ─── MetricCard ───────────────────────────────────────────────────────────────
-
-function MetricCard({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
-  return (
-    <Card className="p-3 bg-card border-border">
-      <div className="flex items-center gap-2 mb-1">
-        <Icon size={14} className="text-muted-foreground" />
-        <span className="text-xs text-muted-foreground">{label}</span>
-      </div>
-      <p className="text-lg font-bold text-foreground">{value}</p>
-    </Card>
   );
 }
