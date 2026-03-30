@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, ChefHat, ShoppingBag, Clock, ClipboardList, Banknote, Monitor, Settings, LogOut, Sun, Moon, HelpCircle } from 'lucide-react';
+import { Home, ChefHat, ShoppingBag, Clock, ClipboardCheck, ClipboardList, Banknote, Receipt, Monitor, Settings, LogOut, Sun, Moon, HelpCircle } from 'lucide-react';
 import { useSessionStore } from '../stores/sessionStore';
 import { useKDSStore } from '../stores/kdsStore';
 import { getVisibleNavPaths, getVisibleBottomItems } from '../utils/roles';
@@ -34,9 +34,11 @@ export default function Sidebar() {
     { icon: <Home size={22} />, label: 'Home', path: '/' },
     { icon: <ChefHat size={22} />, label: 'Kitchen', path: '/kds', badge: counts.active },
     { icon: <ShoppingBag size={22} />, label: 'Counter', path: '/counter', badge: counts.pendingPayment },
-    { icon: <Clock size={22} />, label: 'Clock', path: '/clock' },
     { icon: <ClipboardList size={22} />, label: 'Orders', path: '/orders' },
     { icon: <Banknote size={22} />, label: 'Cash', path: '/cash', badge: counts.pendingPayment },
+    { icon: <Receipt size={22} />, label: 'Receipts', path: '/receipts', action: 'window' },
+    { icon: <ClipboardCheck size={22} />, label: 'Tasks', path: '/tasks' },
+    { icon: <Clock size={22} />, label: 'Clock', path: '/clock' },
   ];
   const navItems = allNavItems.filter((item) => visiblePaths.has(item.path));
 
@@ -59,7 +61,8 @@ export default function Sidebar() {
     if (item.action === 'logout') {
       handleLogout();
     } else if (item.action === 'window') {
-      window.open(item.path, 'ziggl-display', 'popup');
+      const url = item.path === '/receipts' ? 'https://ziggl-inventory.vercel.app/receipts' : item.path;
+      window.open(url, item.path === '/receipts' ? '_blank' : 'ziggl-display', item.path === '/receipts' ? undefined : 'popup');
     } else {
       navigate(item.path);
     }

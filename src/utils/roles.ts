@@ -3,8 +3,8 @@ import type { PosRole } from '../types';
 /** 역할별 접근 가능 경로 (Admin은 별도 앱으로 분리됨) */
 const ROLE_ROUTES: Record<PosRole, Set<string>> = {
   staff:   new Set(['/', '/kds', '/counter', '/clock', '/display', '/help']),
-  manager: new Set(['/', '/kds', '/counter', '/clock', '/orders', '/cash', '/display', '/help']),
-  owner:   new Set(['/', '/kds', '/counter', '/clock', '/orders', '/cash', '/display', '/help']),
+  manager: new Set(['/', '/kds', '/counter', '/clock', '/tasks', '/orders', '/cash', '/receipts', '/display', '/help']),
+  owner:   new Set(['/', '/kds', '/counter', '/clock', '/tasks', '/orders', '/cash', '/receipts', '/display', '/help']),
 };
 
 /** 역할별 기본 랜딩 경로 */
@@ -21,7 +21,7 @@ export function canAccess(role: PosRole, path: string): boolean {
 
 /** 사이드바 상단 네비게이션에 표시할 경로 목록 */
 export function getVisibleNavPaths(role: PosRole): string[] {
-  const allNav = ['/', '/kds', '/counter', '/clock', '/orders', '/cash'];
+  const allNav = ['/', '/kds', '/counter', '/orders', '/cash', '/receipts', '/tasks', '/clock'];
   return allNav.filter((p) => ROLE_ROUTES[role].has(p));
 }
 
