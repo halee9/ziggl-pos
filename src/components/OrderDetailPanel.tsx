@@ -617,9 +617,9 @@ export default function OrderDetailPanel({ order: orderProp, onClose, onStatusCh
           </h3>
           <div className="text-sm">
             <p className="font-medium">{order.displayName || 'Guest'}</p>
-            {order.isScheduled && order.pickupAt && (
+            {order.pickupAt && (
               <p className="text-muted-foreground text-xs mt-1">
-                Pickup: {formatDateTime(order.pickupAt)}
+                {order.isScheduled ? 'Scheduled Pickup' : 'Pickup'}: {formatDateTime(order.pickupAt)}
               </p>
             )}
           </div>
@@ -654,6 +654,9 @@ export default function OrderDetailPanel({ order: orderProp, onClose, onStatusCh
                             </span>
                           ))}
                         </div>
+                      )}
+                      {item.note && (
+                        <p className="text-xs italic text-yellow-500 mt-0.5">★ {item.note}</p>
                       )}
                     </div>
                   </div>
