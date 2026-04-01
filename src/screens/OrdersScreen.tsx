@@ -82,9 +82,12 @@ function sourceBadge(source: OrderSource) {
 function paymentBadge(source?: string) {
   if (!source) return <span className="text-xs text-muted-foreground">—</span>;
   const map: Record<string, { label: string; className: string }> = {
-    stripe:  { label: 'Stripe',  className: 'bg-violet-500/20 text-violet-400' },
-    square:  { label: 'Square',  className: 'bg-blue-500/20 text-blue-400' },
-    cash:    { label: 'Cash',    className: 'bg-amber-500/20 text-amber-400' },
+    stripe:    { label: 'Stripe',    className: 'bg-violet-500/20 text-violet-400' },
+    square:    { label: 'Square',    className: 'bg-blue-500/20 text-blue-400' },
+    cash:      { label: 'Cash',      className: 'bg-amber-500/20 text-amber-400' },
+    doordash:  { label: 'DoorDash',  className: 'bg-red-500/20 text-red-400' },
+    uber_eats: { label: 'Uber Eats', className: 'bg-green-500/20 text-green-400' },
+    grubhub:   { label: 'Grubhub',   className: 'bg-orange-500/20 text-orange-400' },
   };
   const s = map[source] ?? { label: source, className: 'bg-muted text-muted-foreground' };
   return <span className={`text-xs px-2 py-0.5 rounded-full ${s.className}`}>{s.label}</span>;
