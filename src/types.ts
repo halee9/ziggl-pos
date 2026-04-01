@@ -58,6 +58,7 @@ export interface MenuDisplayItem {
   show_on_kds?: boolean;  // false면 KDS 화면에서 숨김 (default: true)
   server_alert?: boolean; // true면 출력 티켓 하단에 확인 요망 표시 (default: false)
   sold_out?: boolean;     // true면 품절 표시 (default: false)
+  icon?: string;          // 이모지 아이콘 (예: '🍚', '🔥')
 }
 
 export interface ModifierDisplayItem {
@@ -70,6 +71,7 @@ export interface ModifierDisplayItem {
   text_color?: string;    // 배지 텍스트색 (hex)
   show_on_kds?: boolean;  // false면 KDS 화면에서 숨김 (default: true)
   server_alert?: boolean; // true면 출력 티켓 하단에 확인 요망 표시 (default: false)
+  icon?: string;          // 이모지 아이콘 (예: '🌾', '🌶️')
 }
 
 export interface MenuDisplayConfig {

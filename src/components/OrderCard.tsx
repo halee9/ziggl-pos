@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { KDSOrder } from '../types';
-import { formatMoney, formatElapsed, getElapsedMinutes, getItemDisplay, getModifierDisplay, mergeLineItems } from '../utils';
+import { formatMoney, formatElapsed, getElapsedMinutes, getItemDisplay, getModifierDisplay, collectLineItemIcons, mergeLineItems } from '../utils';
 import { useKDSStore } from '../stores/kdsStore';
 
 interface Props {
@@ -121,8 +121,10 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
           return visible.length > 0 ? visible : merged;
         })().map((item, idx) => {
           const display = getItemDisplay(item.name, menuItems);
+          const icons = collectLineItemIcons(item, menuItems, modifierDisplay);
           return (
             <div key={idx} className="flex items-center gap-1.5 flex-wrap">
+              {icons.length > 0 && <span className="text-2xl leading-none shrink-0">{icons.join('')}</span>}
               {Number(item.quantity) > 1 && <span className="font-black text-xl">{item.quantity}×</span>}
               <span
                 className="px-2.5 py-1 rounded-md font-bold text-xl leading-tight"

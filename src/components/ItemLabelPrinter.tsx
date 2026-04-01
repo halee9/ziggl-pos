@@ -2,7 +2,8 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Printer } from 'lucide-react';
 import type { KDSOrder, OrderModifier } from '../types';
-import { normalizeMod, formatMoney } from '../utils';
+import { normalizeMod, formatMoney, collectLineItemIcons } from '../utils';
+import { useKDSStore } from '../stores/kdsStore';
 
 interface ExpandedItem {
   name: string;
@@ -39,6 +40,8 @@ interface Props {
  * Uses react-to-print (isolated iframe per print job).
  */
 export function PrintAllItemsButton({ order, className }: Props) {
+  const { menuDisplayConfig } = useKDSStore();
+  const { menuItems, modifiers: modifierDisplay } = menuDisplayConfig;
   const items = expandItems(order.lineItems);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPrinting, setIsPrinting] = useState(false);
@@ -99,6 +102,18 @@ export function PrintAllItemsButton({ order, className }: Props) {
               <div className="text-lg font-bold mb-4">
                 ORDER #{order.displayId}
               </div>
+
+              {/* Icons (item + modifier) */}
+              {(() => {
+                const cur = items[currentIndex];
+                const icons = collectLineItemIcons(
+                  { name: cur.name, quantity: '1', totalMoney: 0, modifiers: cur.modifiers },
+                  menuItems, modifierDisplay
+                );
+                return icons.length > 0 ? (
+                  <div className="text-4xl mb-1">{icons.join('')}</div>
+                ) : null;
+              })()}
 
               {/* Item name */}
               <div className="text-2xl font-bold mb-2">

@@ -58,7 +58,7 @@ export function detectSource(squareSourceName?: string): OrderSource {
 export function getItemDisplay(
   itemName: string,
   menuDisplay: MenuDisplayItem[]
-): { label: string; bgColor: string; textColor: string; showOnKds: boolean; serverAlert: boolean } {
+): { label: string; bgColor: string; textColor: string; showOnKds: boolean; serverAlert: boolean; icon?: string } {
   const config = menuDisplay.find(
     (m) => m.item_name.toLowerCase().trim() === itemName.toLowerCase().trim()
   );
@@ -68,6 +68,7 @@ export function getItemDisplay(
     textColor:   config?.text_color   || '#111827',
     showOnKds:   config?.show_on_kds  ?? true,
     serverAlert: config?.server_alert ?? false,
+    icon:        config?.icon,
   };
 }
 
@@ -85,7 +86,7 @@ export function normalizeMod(mod: any): OrderModifier {
 export function getModifierDisplay(
   mod: OrderModifier | string | any,
   modifierDisplay: ModifierDisplayItem[]
-): { label: string; bgColor: string; textColor: string; showOnKds: boolean; serverAlert: boolean; qty: number; price: number } {
+): { label: string; bgColor: string; textColor: string; showOnKds: boolean; serverAlert: boolean; icon?: string; qty: number; price: number } {
   const { name, qty, price } = normalizeMod(mod);
   const config = modifierDisplay.find(
     (m) => m.modifier_name.toLowerCase().trim() === name.toLowerCase().trim()
@@ -96,9 +97,29 @@ export function getModifierDisplay(
     textColor:   config?.text_color   || '',
     showOnKds:   config?.show_on_kds  ?? true,
     serverAlert: config?.server_alert ?? false,
+    icon:        config?.icon,
     qty,
     price,
   };
+}
+
+/**
+ * 아이템 아이콘 + visible 모디파이어 아이콘들을 순서대로 수집.
+ * 3개 KDS 컴포넌트(OrderList, OrderCard, ItemLabelPrinter)에서 재사용.
+ */
+export function collectLineItemIcons(
+  item: OrderLineItem,
+  menuItems: MenuDisplayItem[],
+  modifierDisplay: ModifierDisplayItem[]
+): string[] {
+  const icons: string[] = [];
+  const itemDisplay = getItemDisplay(item.name, menuItems);
+  if (itemDisplay.icon) icons.push(itemDisplay.icon);
+  for (const mod of item.modifiers ?? []) {
+    const modDisplay = getModifierDisplay(mod, modifierDisplay);
+    if (modDisplay.showOnKds && modDisplay.icon) icons.push(modDisplay.icon);
+  }
+  return icons;
 }
 
 /**

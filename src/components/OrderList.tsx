@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Calendar, ChevronDown, ChevronRight, CornerUpLeft, Printer, Check, Info, Banknote, Inbox, Clock, Flag, FileText } from 'lucide-react';
 import type { KDSOrder, OrderStatus } from '../types';
-import { getItemDisplay, getModifierDisplay, mergeLineItems, formatElapsed, formatDuration, getElapsedMinutes } from '../utils';
+import { getItemDisplay, getModifierDisplay, collectLineItemIcons, mergeLineItems, formatElapsed, formatDuration, getElapsedMinutes } from '../utils';
 import { useKDSStore } from '../stores/kdsStore';
 import { useSessionStore } from '../stores/sessionStore';
 import OrderTicketModal from './OrderTicketModal';
@@ -205,8 +205,12 @@ export function ActiveOrderRow({
             const modDisplay = getModifierDisplay(mod, modifiers);
             return modDisplay.showOnKds;
           }) ?? [];
+          const icons = collectLineItemIcons(item, menuItems, modifiers);
           return (
             <div key={idx} className={`flex gap-1.5 flex-wrap ${idx === 0 ? 'items-end' : 'items-center'}`}>
+              {icons.length > 0 && !isDone && (
+                <span className="text-6xl leading-none shrink-0">{icons.join('')}</span>
+              )}
               <span
                 className={`px-3 py-0 rounded-md text-6xl font-black leading-none inline-flex items-center gap-1.5 transition-all select-none cursor-pointer ${isDone ? 'bg-muted text-muted-foreground' : ''}`}
                 style={isDone

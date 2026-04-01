@@ -1,9 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { MenuDisplayItem, ModifierDisplayItem } from '../types';
+
+let _Picker: any = null;
+let _data: any = null;
+
+async function loadEmojiMart() {
+  if (!_Picker) {
+    const [pickerMod, dataMod] = await Promise.all([
+      import('@emoji-mart/react'),
+      import('@emoji-mart/data'),
+    ]);
+    _Picker = pickerMod.default;
+    _data = dataMod.default;
+  }
+  return { Picker: _Picker, data: _data };
+}
 
 interface SquareMenuItem {
   id: string;
@@ -15,6 +30,139 @@ interface SquareMenuItem {
 interface Props {
   restaurantCode: string;
   pin: string;
+}
+
+/** Commonly useful food/kitchen emojis — shown as quick-pick grid */
+const EMOJI_PRESETS = [
+  '🍚', '🍜', '🍛', '🥗', '🌯', '🍔', '🍟', '🌮',
+  '🍗', '🥩', '🐟', '🦐', '🍣', '🥚', '🧀', '🥑',
+  '🌾', '🌶️', '🔥', '❄️', '🥤', '🍵', '☕', '🧁',
+  '⭐', '💎', '🚫', '⚠️', '✅', '❌', '🆕', '👑',
+];
+
+/** Emoji picker popover — preset grid + full emoji-mart picker */
+function EmojiPickerPopover({
+  value,
+  onChange,
+}: {
+  value?: string;
+  onChange: (emoji: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [showFull, setShowFull] = useState(false);
+  const [pickerLoaded, setPickerLoaded] = useState(false);
+  const [PickerComp, setPickerComp] = useState<any>(null);
+  const [pickerData, setPickerData] = useState<any>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setShowFull(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="relative inline-block" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={`h-7 min-w-[2rem] px-1.5 rounded border text-sm flex items-center gap-1 transition-colors ${
+          value
+            ? 'border-primary bg-primary/10'
+            : 'border-border hover:border-primary/50 text-muted-foreground'
+        }`}
+        title={value ? `Icon: ${value} (click to change)` : 'Add icon'}
+      >
+        {value || '😀'}
+        <span className="text-[10px]">▾</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1 bg-popover border border-border rounded-lg shadow-xl p-2 w-[280px] left-0">
+          {/* Preset grid */}
+          <div className="grid grid-cols-8 gap-1 mb-2">
+            {EMOJI_PRESETS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => {
+                  onChange(emoji);
+                  setOpen(false);
+                  setShowFull(false);
+                }}
+                className={`w-7 h-7 flex items-center justify-center rounded text-lg hover:bg-accent transition-colors ${
+                  value === emoji ? 'bg-primary/20 ring-1 ring-primary' : ''
+                }`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+
+          {/* Clear + More */}
+          <div className="flex items-center justify-between border-t border-border pt-1.5">
+            {value && (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange('');
+                  setOpen(false);
+                  setShowFull(false);
+                }}
+                className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+              >
+                ✕ Remove
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={async () => {
+                if (!showFull && !pickerLoaded) {
+                  const { Picker, data } = await loadEmojiMart();
+                  setPickerComp(() => Picker);
+                  setPickerData(data);
+                  setPickerLoaded(true);
+                }
+                setShowFull(!showFull);
+              }}
+              className="text-xs text-primary hover:underline ml-auto"
+            >
+              {showFull ? 'Hide' : 'More emojis…'}
+            </button>
+          </div>
+
+          {/* Full emoji-mart picker */}
+          {showFull && PickerComp && (
+            <div className="mt-2 border-t border-border pt-2">
+              <PickerComp
+                data={pickerData}
+                onEmojiSelect={(e: any) => {
+                  onChange(e.native);
+                  setOpen(false);
+                  setShowFull(false);
+                }}
+                theme="dark"
+                previewPosition="none"
+                skinTonePosition="none"
+                perLine={8}
+                maxFrequentRows={1}
+              />
+            </div>
+          )}
+          {showFull && !PickerComp && (
+            <div className="text-xs text-muted-foreground text-center py-4">Loading…</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const COLOR_PRESETS = [
@@ -109,10 +257,10 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
     try {
       // show_on_kds=false 또는 server_alert=true인 항목도 포함해서 저장
       const menuItems = Object.values(menuConfig).filter(
-        (m) => m.abbreviation || m.bg_color || m.text_color || m.show_on_kds === false || m.server_alert === true
+        (m) => m.abbreviation || m.bg_color || m.text_color || m.show_on_kds === false || m.server_alert === true || m.icon
       );
       const modifiers = Object.values(modifierConfig).filter(
-        (m) => m.abbreviation || m.bg_color || m.text_color || m.show_on_kds === false || m.server_alert === true
+        (m) => m.abbreviation || m.bg_color || m.text_color || m.show_on_kds === false || m.server_alert === true || m.icon
       );
 
       res = await fetch(`${SERVER_URL}/api/menu-display/${restaurantCode.toLowerCase()}`, {
@@ -209,10 +357,19 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
                       className={`px-2 py-1 rounded font-bold text-sm min-w-[3rem] text-center shrink-0 ${isSoldOut ? 'opacity-40 line-through' : ''}`}
                       style={{ backgroundColor: previewBg, color: previewText }}
                     >
+                      {cfg.icon && <span className="mr-0.5">{cfg.icon}</span>}
                       {previewLabel.slice(0, 8)}
                     </span>
                     {/* Square 원래 이름 */}
                     <span className="text-sm text-muted-foreground flex-1 min-w-[8rem]">{item.name}</span>
+                    {/* Icon picker */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Label className="text-xs shrink-0">Icon</Label>
+                      <EmojiPickerPopover
+                        value={cfg.icon}
+                        onChange={(emoji) => updateMenuItem(item.name, 'icon', emoji)}
+                      />
+                    </div>
                     {/* 약어 입력 */}
                     <div className="flex items-center gap-1.5">
                       <Label className="text-xs w-16 shrink-0">Abbr.</Label>
@@ -305,10 +462,19 @@ export default function MenuDisplayEditor({ restaurantCode, pin }: Props) {
                           : { borderColor: 'rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.6)' }
                         }
                       >
+                        {cfg.icon && <span className="mr-0.5">{cfg.icon}</span>}
                         {previewLabel.slice(0, 6)}
                       </span>
                       {/* Square 원래 이름 */}
                       <span className="text-sm text-muted-foreground flex-1 truncate min-w-[6rem]">{mod.name}</span>
+                      {/* Icon picker */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Label className="text-xs shrink-0">Icon</Label>
+                        <EmojiPickerPopover
+                          value={cfg.icon}
+                          onChange={(emoji) => updateModifierField(mod.name, 'icon', emoji)}
+                        />
+                      </div>
                       {/* 약어 입력 */}
                       <div className="flex items-center gap-1.5 shrink-0">
                         <Label className="text-xs shrink-0">Abbr.</Label>
