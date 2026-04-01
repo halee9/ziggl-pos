@@ -12,11 +12,12 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import {
-  Search, ChevronLeft, ChevronRight, RefreshCw, Filter, X, AlertTriangle, CalendarIcon, Banknote, Flag, FileText,
+  Search, ChevronLeft, ChevronRight, RefreshCw, Filter, X, AlertTriangle, CalendarIcon, Banknote, Flag, FileText, Receipt,
 } from 'lucide-react';
 import { Calendar } from '../components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import OrderDetailPanel from '../components/OrderDetailPanel';
+import OrderTicketModal from '../components/OrderTicketModal';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
@@ -134,6 +135,7 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
 
   // detail
   const [selectedOrder, setSelectedOrder] = useState<KDSOrder | null>(null);
+  const [ticketOrder, setTicketOrder] = useState<KDSOrder | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
@@ -366,6 +368,13 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setTicketOrder(order); }}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        title="View ticket"
+                      >
+                        <Receipt className="h-4 w-4" />
+                      </button>
                       <span className="font-mono font-bold text-sm">#{order.displayId}</span>
                       {sourceBadge(order.source)}
                       {paymentBadge(order.paymentSource)}
@@ -418,6 +427,13 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
                     className="hover:bg-muted/30 cursor-pointer transition-colors"
                   >
                     <td className="px-4 py-3 font-mono font-bold flex items-center gap-1.5">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setTicketOrder(order); }}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        title="View ticket"
+                      >
+                        <Receipt className="h-4 w-4" />
+                      </button>
                       #{order.displayId}
                       {order.flag?.includes('unclaimed') && <Badge className="bg-red-600 text-white border-0 text-xs flex items-center gap-0.5"><Flag className="h-3 w-3" /></Badge>}
                       {order.flag?.includes('issue') && <Badge className="bg-orange-600 text-white border-0 text-xs flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" /></Badge>}
@@ -490,6 +506,9 @@ export default function OrdersScreen({ restaurantCode: propCode, allowDelete }: 
           </div>
         </div>
       )}
+
+      {/* Order Ticket Modal */}
+      {ticketOrder && <OrderTicketModal order={ticketOrder} onClose={() => setTicketOrder(null)} />}
 
       {/* Order Detail Panel */}
       <OrderDetailPanel
