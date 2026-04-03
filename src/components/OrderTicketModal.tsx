@@ -21,15 +21,15 @@ export function TicketContent({ order, menuItems, modifiers: modifierList }: {
   // Collect server-alert items/modifiers as "count → label" map
   const alertMap = new Map<string, number>();
   order.lineItems.forEach((item) => {
+    const qty = parseInt(item.quantity, 10) || 1;
     const d = getItemDisplay(item.name, menuItems);
     if (d.serverAlert) {
-      const qty = parseInt(item.quantity, 10) || 1;
       alertMap.set(d.label, (alertMap.get(d.label) ?? 0) + qty);
     }
     (item.modifiers ?? []).forEach((mod) => {
       const md = getModifierDisplay(mod, modifierList);
       if (md.serverAlert) {
-        alertMap.set(md.label, (alertMap.get(md.label) ?? 0) + md.qty);
+        alertMap.set(md.label, (alertMap.get(md.label) ?? 0) + md.qty * qty);
       }
     });
   });
