@@ -37,10 +37,14 @@ export default function RestaurantLogin({ onJoin }: Props) {
       }
       const config = await res.json();
 
+      // force_closed 상태 동기화
+      const { setForceClosed } = await import('../stores/sessionStore').then(m => m.useSessionStore.getState());
+      setForceClosed(!!config.force_closed);
+
       if (config.hasPosRoles) {
         // PIN 필요 — 2단계로 전환
         setPendingConfig({ code: trimmed, name: config.name, timezone: config.timezone ?? 'America/Los_Angeles', scheduledActivationMinutes: config.scheduled_activation_minutes });
-        // 서버에서 가져온 scheduled_activation_minutes를 KDS store에 동기화
+        // ���버에서 가져온 scheduled_activation_minutes를 KDS store�� 동기화
         if (config.scheduled_activation_minutes != null) {
           const { setScheduledActivationMinutes } = await import('../stores/kdsStore').then(m => m.useKDSStore.getState());
           setScheduledActivationMinutes(config.scheduled_activation_minutes);

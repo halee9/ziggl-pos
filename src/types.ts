@@ -38,6 +38,7 @@ export interface RestaurantConfig {
     yelp?: string;
     google_maps?: string;
   } | null;
+  force_closed?: boolean;
 }
 
 // ─── Order Types ─────────────────────────────────────────────────────────────

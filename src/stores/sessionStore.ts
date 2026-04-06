@@ -16,11 +16,13 @@ interface SessionState {
   theme: Theme;
   activeTab: KDSTab;
   viewMode: ViewMode;
+  forceClosed: boolean;
   login: (code: string, name: string, role?: PosRole, staffName?: string, pin?: string, timezone?: string) => void;
   logout: () => void;
   setTheme: (theme: Theme) => void;
   setActiveTab: (tab: KDSTab) => void;
   setViewMode: (mode: ViewMode) => void;
+  setForceClosed: (closed: boolean) => void;
 }
 
 export const useSessionStore = create<SessionState>()(
@@ -35,13 +37,15 @@ export const useSessionStore = create<SessionState>()(
       theme: 'dark' as Theme,
       activeTab: 'active',
       viewMode: 'list',   // 기본값: list view
+      forceClosed: false,
       login: (code, name, role = 'owner', staffName = '', pin = '', timezone = 'America/Los_Angeles') =>
         set({ restaurantCode: code, restaurantName: name, role, staffName, pin, timezone }),
       logout: () =>
-        set({ restaurantCode: null, restaurantName: '', timezone: 'America/Los_Angeles', role: 'owner', staffName: '', pin: '' }),
+        set({ restaurantCode: null, restaurantName: '', timezone: 'America/Los_Angeles', role: 'owner', staffName: '', pin: '', forceClosed: false }),
       setTheme: (theme) => set({ theme }),
       setActiveTab: (activeTab) => set({ activeTab }),
       setViewMode: (viewMode) => set({ viewMode }),
+      setForceClosed: (forceClosed) => set({ forceClosed }),
     }),
     {
       name: 'kds-session',
@@ -55,6 +59,7 @@ export const useSessionStore = create<SessionState>()(
         theme: state.theme,
         activeTab: state.activeTab,
         viewMode: state.viewMode,
+        forceClosed: state.forceClosed,
       }),
     }
   )

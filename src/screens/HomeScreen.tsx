@@ -9,7 +9,7 @@ import { Badge } from '../components/ui/badge';
 import {
   DollarSign, ShoppingBag, TrendingUp, ChefHat,
   ClipboardList, Settings, RefreshCw,
-  ArrowUp, ArrowDown, ArrowRight, Clock,
+  ArrowUp, ArrowDown, ArrowRight, Clock, Power,
 } from 'lucide-react';
 import { formatMoney, formatTime } from '../utils';
 import { canAccess } from '../utils/roles';
@@ -50,10 +50,14 @@ export default function HomeScreen() {
   const staffName = useSessionStore((s) => s.staffName);
   const connected = useKDSStore((s) => s.connected);
   const counts = useKDSStore((s) => s.orderCounts)();
+  const forceClosed = useSessionStore((s) => s.forceClosed);
+  const setForceClosed = useSessionStore((s) => s.setForceClosed);
+  const pin = useSessionStore((s) => s.pin);
 
   const [summary, setSummary] = useState<TodaySummary | null>(null);
   const [recentOrders, setRecentOrders] = useState<KDSOrder[]>([]);
   const [loading, setLoading] = useState(false);
+  const [toggling, setToggling] = useState(false);
 
   const showRevenue = role === 'owner';
   const showOrders = canAccess(role, '/orders');
@@ -96,6 +100,27 @@ export default function HomeScreen() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Force close toggle
+  const handleForceClose = useCallback(async () => {
+    if (!restaurantCode || toggling) return;
+    const newValue = !forceClosed;
+    setToggling(true);
+    try {
+      const res = await fetch(`${SERVER_URL}/api/admin/${restaurantCode.toLowerCase()}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin, force_closed: newValue }),
+      });
+      if (res.ok) {
+        setForceClosed(newValue);
+      }
+    } catch (err) {
+      console.error('[Home] force close toggle failed:', err);
+    } finally {
+      setToggling(false);
+    }
+  }, [restaurantCode, pin, forceClosed, toggling, setForceClosed]);
+
   // 오늘 vs 어제 매출 트렌드
   const revenueTrend = summary
     ? summary.yesterday.revenue > 0
@@ -122,6 +147,21 @@ export default function HomeScreen() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {role === 'owner' && (
+              <button
+                data-testid="force-close-toggle"
+                onClick={handleForceClose}
+                disabled={toggling}
+                className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${
+                  forceClosed
+                    ? 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                    : 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
+                } ${toggling ? 'opacity-50' : ''}`}
+              >
+                <Power size={12} />
+                {forceClosed ? 'Online Closed' : 'Online Open'}
+              </button>
+            )}
             <span className="text-xs text-muted-foreground hidden sm:block">
               {todayDisplay()}
             </span>
