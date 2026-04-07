@@ -874,15 +874,22 @@ export default function StaffManager({ restaurantCode, restaurantName, pin, payP
                           </tfoot>
                         </table>
                       </div>
-                      <div className="mt-3 no-print">
+                      <div className="mt-3 no-print flex gap-2 items-start">
                         <textarea
-                          className="w-full text-sm bg-secondary/50 rounded-md px-3 py-2 text-foreground placeholder:text-muted-foreground resize-none border-0 focus:outline-none focus:ring-1 focus:ring-primary"
+                          className="flex-1 text-sm bg-secondary/50 rounded-md px-3 py-2 text-foreground placeholder:text-muted-foreground resize-none border-0 focus:outline-none focus:ring-1 focus:ring-primary"
                           rows={2}
                           placeholder="Note for pay stub..."
                           value={payrollNotes[staffId] ?? ''}
                           onChange={(ev) => setPayrollNotes(prev => ({ ...prev, [staffId]: ev.target.value }))}
-                          onBlur={() => handleSaveNote(staffId, payrollNotes[staffId] ?? '')}
                         />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-8 shrink-0"
+                          onClick={() => handleSaveNote(staffId, payrollNotes[staffId] ?? '')}
+                        >
+                          Save
+                        </Button>
                       </div>
                       <div className="mt-2 flex items-center justify-between">
                         {finalizedMap[staffId] ? (
