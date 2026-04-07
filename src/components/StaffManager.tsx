@@ -673,6 +673,14 @@ export default function StaffManager({ restaurantCode, restaurantName, pin, payP
             </div>
           )}
 
+          {/* Period total tips */}
+          {!entriesLoading && periodTips > 0 && (
+            <div className="flex items-center justify-center gap-2 py-2 px-4 bg-amber-500/10 border border-amber-500/20 rounded-lg no-print">
+              <span className="text-sm font-semibold text-amber-500">Period Tips</span>
+              <span className="text-lg font-bold text-amber-400">{formatMoney(periodTips)}</span>
+            </div>
+          )}
+
           {entriesLoading ? (
             <p className="text-muted-foreground text-sm animate-pulse">Loading...</p>
           ) : Object.keys(entriesByStaff).length === 0 ? (
@@ -819,6 +827,17 @@ export default function StaffManager({ restaurantCode, restaurantName, pin, payP
                               <tr className="text-sm">
                                 <td colSpan={3} className="pb-1 pr-3 text-right text-muted-foreground">Base + Tips</td>
                                 <td colSpan={2} className="pb-1 pr-3 font-semibold">{formatMoney(basePay + tipShare)}</td>
+                                <td></td>
+                              </tr>
+                            )}
+                            {minWage > 0 && (
+                              <tr className="text-sm">
+                                <td colSpan={3} className="pb-1 pr-3 text-right text-blue-400">
+                                  Min Wage ({totalPayHours.toFixed(2)}h × {formatMoney(minWage)})
+                                </td>
+                                <td colSpan={2} className={`pb-1 pr-3 font-semibold ${isMinApplied ? 'text-blue-400' : 'text-blue-400/50'}`}>
+                                  {formatMoney(minPay)}
+                                </td>
                                 <td></td>
                               </tr>
                             )}
