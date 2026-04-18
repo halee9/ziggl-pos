@@ -52,7 +52,11 @@ export function TicketContent({ order, menuItems, modifiers: modifierList }: {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-7xl font-bold leading-none">{order.displayId}</p>
-          <p className="text-sm text-center mt-1">No Bags</p>
+          <p className="text-sm text-center mt-1">
+            {(order.bagCount ?? 0) > 0
+              ? `${order.bagCount} Bag${order.bagCount! > 1 ? 's' : ''}`
+              : 'No Bags'}
+          </p>
         </div>
         <QRCodeSVG value={`${SERVER_URL}/receipt/${order.id}`} size={100} level="L" />
       </div>
