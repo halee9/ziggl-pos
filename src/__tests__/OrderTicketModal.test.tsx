@@ -61,3 +61,25 @@ describe('TicketContent — bag count display', () => {
     expect(screen.queryByText('No Bags')).not.toBeInTheDocument();
   });
 });
+
+describe('TicketContent — bag fee display', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders "Bag Fee" row with formatted amount when bagFee > 0', () => {
+    renderTicket({ ...baseOrder, bagCount: 1, bagFee: 25, subtotal: 1500, taxAmount: 160 });
+    expect(screen.getByText('Bag Fee')).toBeInTheDocument();
+    expect(screen.getByText('$0.25')).toBeInTheDocument();
+  });
+
+  it('omits "Bag Fee" row when bagFee is 0', () => {
+    renderTicket({ ...baseOrder, bagFee: 0, subtotal: 1500 });
+    expect(screen.queryByText('Bag Fee')).not.toBeInTheDocument();
+  });
+
+  it('omits "Bag Fee" row when bagFee is undefined', () => {
+    renderTicket({ ...baseOrder, subtotal: 1500 });
+    expect(screen.queryByText('Bag Fee')).not.toBeInTheDocument();
+  });
+});

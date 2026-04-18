@@ -132,6 +132,7 @@ export interface KDSOrder {
   flag?: string[] | null;
   photos?: { url: string; uploaded_at: string }[];
   bagCount?: number;          // 봉투 개수
+  bagFee?: number;            // 봉투 수수료 (cents, bagCount × bag_price)
   loyaltyDiscount?: number;  // 포인트 할인 (cents)
   loyaltyPhone?: string;     // 포인트 적립/사용 전화번호
   startedAt?: string;    // IN_PROGRESS로 처음 전환된 시각

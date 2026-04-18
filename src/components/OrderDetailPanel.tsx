@@ -689,6 +689,12 @@ export default function OrderDetailPanel({ order: orderProp, onClose, onStatusCh
                 <span>{formatMoney((order.tax ?? order.taxAmount)!)}</span>
               </div>
             )}
+            {order.bagFee != null && order.bagFee > 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span>Bag Fee</span>
+                <span>{formatMoney(order.bagFee)}</span>
+              </div>
+            )}
             {order.tipAmount != null && order.tipAmount > 0 && (
               <div className="flex justify-between text-muted-foreground">
                 <span>Tip</span>
