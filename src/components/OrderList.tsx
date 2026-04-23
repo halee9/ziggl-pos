@@ -555,6 +555,7 @@ function ScheduledSection({ orders, onUpdateStatus, onPrint }: {
 // ── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 export default function OrderList({ activeOrders, pendingPaymentOrders, scheduledOrders, readyOrders, completedOrders, cancelledOrders, onUpdateStatus, onPrint, onConfirmCash, onRejectCash }: Props) {
   const { activeTab } = useSessionStore();
+  const readySortOrder = useKDSStore((s) => s.readySortOrder);
   const isWide = useMediaQuery('(min-width: 1400px)');
   const [cashDialogOrder, setCashDialogOrder] = React.useState<KDSOrder | null>(null);
 
@@ -711,9 +712,10 @@ export default function OrderList({ activeOrders, pendingPaymentOrders, schedule
   const sortedCashDue = [...pendingPaymentOrders].sort((a, b) =>
     a.createdAt.localeCompare(b.createdAt)
   );
-  const sortedReady = [...readyOrders].sort((a, b) =>
-    (a.readyAt ?? a.createdAt).localeCompare(b.readyAt ?? b.createdAt)
-  );
+  const sortedReady = [...readyOrders].sort((a, b) => {
+    const cmp = (a.readyAt ?? a.createdAt).localeCompare(b.readyAt ?? b.createdAt);
+    return readySortOrder === 'asc' ? cmp : -cmp;
+  });
   const sortedDone = [...completedOrders].sort((a, b) =>
     (b.completedAt ?? b.createdAt).localeCompare(a.completedAt ?? a.createdAt)
   );
