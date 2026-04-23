@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Truck, Calendar, Clock, AlertTriangle, FileText, Printer, Check, CheckCheck, ChevronLeft, Banknote } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import type { KDSOrder } from '../types';
 import { formatMoney, formatElapsed, getElapsedMinutes, getItemDisplay, getModifierDisplay, collectLineItemIcons, mergeLineItems, adaptColorForLight } from '../utils';
 import { useKDSStore } from '../stores/kdsStore';
 import { useSessionStore } from '../stores/sessionStore';
+import RevertConfirmDialog, { type RevertRequest } from './RevertConfirmDialog';
 
 interface Props {
   order: KDSOrder;
@@ -39,6 +41,16 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
   const { menuDisplayConfig } = useKDSStore();
   const theme = useSessionStore((s) => s.theme);
   const { menuItems, modifiers: modifierDisplay } = menuDisplayConfig;
+  const [revertRequest, setRevertRequest] = useState<RevertRequest | null>(null);
+
+  function requestRevert(to: KDSOrder['status']) {
+    setRevertRequest({
+      displayId: order.displayId,
+      from: order.status,
+      to,
+      onConfirm: () => onUpdateStatus(order.id, to),
+    });
+  }
 
   return (
     <Card className={`flex flex-col gap-0 py-0 overflow-hidden transition-all border-2
@@ -201,7 +213,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
               <Button
                 variant="outline"
                 className="h-11 w-11 rounded-lg p-0 shrink-0"
-                onClick={() => onUpdateStatus(order.id, 'OPEN')}
+                onClick={() => requestRevert('OPEN')}
                 title="Back to Open"
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -219,7 +231,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
               <Button
                 variant="outline"
                 className="h-11 w-11 rounded-lg p-0 shrink-0"
-                onClick={() => onUpdateStatus(order.id, 'IN_PROGRESS')}
+                onClick={() => requestRevert('IN_PROGRESS')}
                 title="Back to In Progress"
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -237,7 +249,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
               <Button
                 variant="outline"
                 className="h-11 w-11 rounded-lg p-0 shrink-0"
-                onClick={() => onUpdateStatus(order.id, 'READY')}
+                onClick={() => requestRevert('READY')}
                 title="Back to Ready"
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -249,6 +261,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
           )}
         </div>
       </CardFooter>
+      <RevertConfirmDialog request={revertRequest} onClose={() => setRevertRequest(null)} />
     </Card>
   );
 }

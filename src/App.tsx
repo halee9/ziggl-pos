@@ -227,6 +227,8 @@ function AppShell() {
       if ('note' in updated) meta.note = updated.note;
       if ('flag' in updated) meta.flag = updated.flag;
       if ('photos' in updated) meta.photos = updated.photos;
+      if ('cardBrand' in updated) meta.cardBrand = updated.cardBrand;
+      if ('cardLast4' in updated) meta.cardLast4 = updated.cardLast4;
       if (Object.keys(meta).length > 0) updateOrderMeta(updated.id, meta);
     });
     socket.on('order:cancelled', ({ id }: { id: string }) => {

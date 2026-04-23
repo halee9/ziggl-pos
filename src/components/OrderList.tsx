@@ -6,6 +6,7 @@ import { useKDSStore } from '../stores/kdsStore';
 import { useSessionStore } from '../stores/sessionStore';
 import OrderTicketModal from './OrderTicketModal';
 import CashTenderDialog from './CashTenderDialog';
+import RevertConfirmDialog, { type RevertRequest } from './RevertConfirmDialog';
 
 // ── useMediaQuery hook ──────────────────────────────────────────────────────
 function useMediaQuery(query: string): boolean {
@@ -130,6 +131,7 @@ export function ActiveOrderRow({
   // 아이템별 완료 카운트 (로컬) — idx → 완료된 수량
   const [doneCounts, setDoneCounts] = React.useState<Map<number, number>>(new Map());
   const [infoOpen, setInfoOpen] = React.useState(false);
+  const [revertRequest, setRevertRequest] = React.useState<RevertRequest | null>(null);
 
   // 상태 복귀 시 리셋
   React.useEffect(() => {
@@ -175,7 +177,13 @@ export function ActiveOrderRow({
   function handleBack(e: React.MouseEvent) {
     e.stopPropagation();
     const prev = prevStatus(order.status);
-    if (prev) onUpdateStatus(order.id, prev);
+    if (!prev) return;
+    setRevertRequest({
+      displayId: order.displayId,
+      from: order.status,
+      to: prev,
+      onConfirm: () => onUpdateStatus(order.id, prev),
+    });
   }
 
   const isPendingPayment = order.status === 'PENDING_PAYMENT';
@@ -346,6 +354,7 @@ export function ActiveOrderRow({
           </button>
         )}
       </div>
+      <RevertConfirmDialog request={revertRequest} onClose={() => setRevertRequest(null)} />
     </div>
   );
 }
@@ -373,6 +382,7 @@ function CompactOrderRow({
   const totalQty = items.reduce((sum, item) => sum + Number(item.quantity), 0);
   const isBigOrder = totalQty >= 5;
   const [infoOpen, setInfoOpen] = React.useState(false);
+  const [revertRequest, setRevertRequest] = React.useState<RevertRequest | null>(null);
 
   function handleAdvance(e: React.MouseEvent) {
     e.stopPropagation();
@@ -440,7 +450,13 @@ function CompactOrderRow({
             onClick={(e) => {
               e.stopPropagation();
               const prev = prevStatus(order.status);
-              if (prev) onUpdateStatus(order.id, prev);
+              if (!prev) return;
+              setRevertRequest({
+                displayId: order.displayId,
+                from: order.status,
+                to: prev,
+                onConfirm: () => onUpdateStatus(order.id, prev),
+              });
             }}
             title="Go back"
           >
@@ -463,6 +479,7 @@ function CompactOrderRow({
         <div className="ml-13 mt-0.5 text-xs text-yellow-600 dark:text-yellow-400 italic truncate">★ {order.note}</div>
       )}
       {infoOpen && <OrderTicketModal order={order} onClose={() => setInfoOpen(false)} />}
+      <RevertConfirmDialog request={revertRequest} onClose={() => setRevertRequest(null)} />
     </div>
   );
 }
