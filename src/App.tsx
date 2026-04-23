@@ -5,6 +5,7 @@ import type { KDSOrder } from './types';
 import { useKDSStore } from './stores/kdsStore';
 import { useSessionStore } from './stores/sessionStore';
 import { canAccess, DEFAULT_ROUTE } from './utils/roles';
+import { mergeServerOrders } from './utils/mergeServerOrders';
 import StatusBar from './components/StatusBar';
 import OrderList from './components/OrderList';
 import SilentPrintTicket from './components/SilentPrintTicket';
@@ -160,6 +161,7 @@ function AppShell() {
   const [printQueue, setPrintQueue] = useState<KDSOrder[]>([]);
   const autoPrintedRef = useRef<Set<string>>(new Set());
   const autoStartedRef = useRef<Set<string>>(new Set());
+  const fetchActiveControllerRef = useRef<AbortController | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
   // ── 테마 동기화 ──
@@ -174,16 +176,25 @@ function AppShell() {
   }, []);
 
   // 재연결 시 활성 주문 복구
+  // - 동시 in-flight 요청은 AbortController로 취소 (stale 응답이 새 응답을 덮어쓰는 것 방지)
+  // - 서버 스냅샷과 로컬을 forward-only로 병합 (mergeServerOrders) — emit으로 먼저 진전된
+  //   로컬 status를 stale fetch가 backward로 덮지 않도록
   const fetchActiveOrders = async (code: string) => {
+    fetchActiveControllerRef.current?.abort();
+    const controller = new AbortController();
+    fetchActiveControllerRef.current = controller;
+
     try {
-      const res = await fetch(`${SERVER_URL}/api/orders/${code.toLowerCase()}/active`);
+      const res = await fetch(`${SERVER_URL}/api/orders/${code.toLowerCase()}/active`, {
+        signal: controller.signal,
+      });
       if (!res.ok) return;
       const { orders: serverOrders }: { orders: KDSOrder[] } = await res.json();
+      if (controller.signal.aborted) return;
       const currentOrders = useKDSStore.getState().orders;
-      const serverIdSet = new Set(serverOrders.map((o) => o.id));
-      const localOnly = currentOrders.filter((o) => !serverIdSet.has(o.id));
-      setOrders([...serverOrders, ...localOnly]);
+      setOrders(mergeServerOrders(serverOrders, currentOrders));
     } catch (err) {
+      if ((err as Error)?.name === 'AbortError') return;
       console.warn('[KDS] Could not fetch active orders:', err);
     }
   };
