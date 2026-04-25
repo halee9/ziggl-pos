@@ -4,7 +4,7 @@ import OrderCard from './OrderCard';
 
 interface Props {
   orders: KDSOrder[];
-  onUpdateStatus: (orderId: string, status: KDSOrder['status']) => void;
+  onUpdateStatus: (orderId: string, status: KDSOrder['status'], intent?: 'revert') => void;
   onPrint: (order: KDSOrder) => void;
 }
 

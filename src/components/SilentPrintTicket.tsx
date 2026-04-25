@@ -6,6 +6,8 @@ import { TicketContent } from './OrderTicketModal';
 
 interface Props {
   order: KDSOrder;
+  /** "auto" = autoPrint(IN_PROGRESS 진입), "manual" = 프린터 아이콘 클릭 */
+  source: 'auto' | 'manual';
   onDone: () => void;
 }
 
@@ -14,7 +16,7 @@ interface Props {
  * Used for auto-print (order → IN_PROGRESS) and direct print icon click.
  * Calls onDone() after print completes (or if print dialog is cancelled).
  */
-export default function SilentPrintTicket({ order, onDone }: Props) {
+export default function SilentPrintTicket({ order, source, onDone }: Props) {
   const { menuDisplayConfig } = useKDSStore();
   const { menuItems, modifiers } = menuDisplayConfig;
   const printRef = useRef<HTMLDivElement>(null);
@@ -44,7 +46,7 @@ export default function SilentPrintTicket({ order, onDone }: Props) {
     <div className="hidden">
       <div ref={printRef}>
         <div className="p-5 font-mono text-black bg-white text-sm" style={{ width: 280 }}>
-          <TicketContent order={order} menuItems={menuItems} modifiers={modifiers} />
+          <TicketContent order={order} menuItems={menuItems} modifiers={modifiers} printSource={source} />
         </div>
       </div>
     </div>

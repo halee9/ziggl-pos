@@ -40,12 +40,15 @@ import { isScheduledOrder } from './utils/isScheduledOrder';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
+// 프린트 잡 — order + 출처 (auto = autoPrint, manual = 직원이 프린트 아이콘 클릭)
+type PrintJob = { order: KDSOrder; source: 'auto' | 'manual' };
+
 // ── Kitchen (KDS) 화면 ──────────────────────────────────────────────────────
 function KitchenScreen({ onUpdateStatus, onPrint, printQueue, setPrintQueue, now, onConfirmCash, onRejectCash }: {
-  onUpdateStatus: (id: string, status: KDSOrder['status']) => Promise<void>;
+  onUpdateStatus: (id: string, status: KDSOrder['status'], intent?: 'revert') => Promise<void>;
   onPrint: (order: KDSOrder) => void;
-  printQueue: KDSOrder[];
-  setPrintQueue: React.Dispatch<React.SetStateAction<KDSOrder[]>>;
+  printQueue: PrintJob[];
+  setPrintQueue: React.Dispatch<React.SetStateAction<PrintJob[]>>;
   now: number;
   onConfirmCash: (id: string, cashTendered?: number, cashChange?: number) => Promise<void>;
   onRejectCash: (id: string) => Promise<void>;
@@ -65,10 +68,11 @@ function KitchenScreen({ onUpdateStatus, onPrint, printQueue, setPrintQueue, now
 
   return (
     <div className="h-full flex flex-col bg-background overflow-hidden font-kds">
-      {/* 프린트 큐 */}
+      {/* 프린트 큐 — order + source(auto/manual)를 함께 흘려보냄 */}
       {printQueue.length > 0 && (
         <SilentPrintTicket
-          order={printQueue[0]}
+          order={printQueue[0].order}
+          source={printQueue[0].source}
           onDone={() => setPrintQueue((q) => q.slice(1))}
         />
       )}
@@ -158,7 +162,7 @@ function AppShell() {
     setConnected, setMenuDisplayConfig,
     orders, scheduledActivationMinutes, autoStartOrders, autoPrint,
   } = useKDSStore();
-  const [printQueue, setPrintQueue] = useState<KDSOrder[]>([]);
+  const [printQueue, setPrintQueue] = useState<PrintJob[]>([]);
   const autoPrintedRef = useRef<Set<string>>(new Set());
   const autoStartedRef = useRef<Set<string>>(new Set());
   const fetchActiveControllerRef = useRef<AbortController | null>(null);
@@ -267,13 +271,33 @@ function AppShell() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurantCode]);
 
-  const handleUpdateStatus = async (orderId: string, status: KDSOrder['status']) => {
+  // intent='revert' — Back 버튼 등 의도적 backward 변경에만 사용. 서버는 이게 없으면 backward를 거부한다.
+  const handleUpdateStatus = async (
+    orderId: string,
+    status: KDSOrder['status'],
+    intent?: 'revert',
+  ) => {
     try {
-      await fetch(`${SERVER_URL}/api/orders/${orderId}/status`, {
+      const res = await fetch(`${SERVER_URL}/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, restaurantCode }),
+        body: JSON.stringify({ status, restaurantCode, intent }),
       });
+      if (res.status === 409) {
+        // 서버가 stale forward(서버 입장에서 backward) 를 거부 → 서버 현재 status로 로컬 동기화
+        try {
+          const body = await res.json();
+          if (body?.currentStatus) {
+            updateOrderStatus(orderId, body.currentStatus);
+            console.warn(`[KDS] PUT ${orderId} → ${status} rejected (stale_state). Server says: ${body.currentStatus}`);
+          }
+        } catch {}
+        return;
+      }
+      if (!res.ok) {
+        console.warn(`[KDS] PUT ${orderId} → ${status} failed: ${res.status}`);
+        return;
+      }
       updateOrderStatus(orderId, status);
     } catch (err) {
       console.error('Failed to update order status', err);
@@ -330,13 +354,13 @@ function AppShell() {
     );
     if (toPrint.length > 0) {
       toPrint.forEach((o) => autoPrintedRef.current.add(o.id));
-      setPrintQueue((q) => [...q, ...toPrint]);
+      setPrintQueue((q) => [...q, ...toPrint.map((o) => ({ order: o, source: 'auto' as const }))]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders]);
 
   const handlePrint = (order: KDSOrder) => {
-    setPrintQueue((q) => [...q, order]);
+    setPrintQueue((q) => [...q, { order, source: 'manual' }]);
   };
 
   const handleConfirmCash = async (orderId: string, cashTendered?: number, cashChange?: number) => {

@@ -10,7 +10,7 @@ interface Props {
   scheduledOrders: KDSOrder[];
   now: number;
   scheduledActivationMinutes: number;
-  onUpdateStatus: (orderId: string, status: KDSOrder['status']) => void;
+  onUpdateStatus: (orderId: string, status: KDSOrder['status'], intent?: 'revert') => void;
   onPrint: (order: KDSOrder) => void;
   onConfirmCash?: (orderId: string) => void;
   onRejectCash?: (orderId: string) => void;

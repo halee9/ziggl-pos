@@ -11,7 +11,7 @@ import RevertConfirmDialog, { type RevertRequest } from './RevertConfirmDialog';
 
 interface Props {
   order: KDSOrder;
-  onUpdateStatus: (orderId: string, status: KDSOrder['status']) => void;
+  onUpdateStatus: (orderId: string, status: KDSOrder['status'], intent?: 'revert') => void;
   onPrint: (order: KDSOrder) => void;
   onConfirmCash?: (orderId: string) => void;
   onRejectCash?: (orderId: string) => void;
@@ -48,7 +48,7 @@ export default function OrderCard({ order, onUpdateStatus, onPrint }: Props) {
       displayId: order.displayId,
       from: order.status,
       to,
-      onConfirm: () => onUpdateStatus(order.id, to),
+      onConfirm: () => onUpdateStatus(order.id, to, 'revert'),
     });
   }
 

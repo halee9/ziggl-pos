@@ -47,7 +47,7 @@ interface Props {
   readyOrders: KDSOrder[];       // READY (픽업 대기)
   completedOrders: KDSOrder[];   // COMPLETED (완전 종료)
   cancelledOrders: KDSOrder[];   // CANCELED (취소)
-  onUpdateStatus: (orderId: string, status: OrderStatus) => void;
+  onUpdateStatus: (orderId: string, status: OrderStatus, intent?: 'revert') => void;
   onPrint: (order: KDSOrder) => void;
   onConfirmCash?: (orderId: string, cashTendered?: number, cashChange?: number) => Promise<void>;
   onRejectCash?: (orderId: string) => Promise<void>;
@@ -182,7 +182,7 @@ export function ActiveOrderRow({
       displayId: order.displayId,
       from: order.status,
       to: prev,
-      onConfirm: () => onUpdateStatus(order.id, prev),
+      onConfirm: () => onUpdateStatus(order.id, prev, 'revert'),
     });
   }
 
@@ -455,7 +455,7 @@ function CompactOrderRow({
                 displayId: order.displayId,
                 from: order.status,
                 to: prev,
-                onConfirm: () => onUpdateStatus(order.id, prev),
+                onConfirm: () => onUpdateStatus(order.id, prev, 'revert'),
               });
             }}
             title="Go back"
@@ -525,7 +525,7 @@ function ColumnHeader({ title, count }: { title: string; count: number }) {
 // ── Scheduled 접이식 섹션 ─────────────────────────────────────────────────────
 function ScheduledSection({ orders, onUpdateStatus, onPrint }: {
   orders: KDSOrder[];
-  onUpdateStatus: (orderId: string, status: OrderStatus) => void;
+  onUpdateStatus: (orderId: string, status: OrderStatus, intent?: 'revert') => void;
   onPrint: (order: KDSOrder) => void;
 }) {
   const [open, setOpen] = useState(true);

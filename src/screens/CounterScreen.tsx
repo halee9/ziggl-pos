@@ -9,7 +9,7 @@ import { ActiveOrderRow } from '../components/OrderList';
 import type { KDSOrder } from '../types';
 
 interface Props {
-  onUpdateStatus: (orderId: string, status: KDSOrder['status']) => Promise<void>;
+  onUpdateStatus: (orderId: string, status: KDSOrder['status'], intent?: 'revert') => Promise<void>;
   onConfirmCash: (orderId: string, cashTendered?: number, cashChange?: number) => Promise<void>;
   onRejectCash: (orderId: string) => Promise<void>;
 }

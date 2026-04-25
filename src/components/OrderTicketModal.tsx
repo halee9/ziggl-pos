@@ -13,10 +13,12 @@ interface Props {
 }
 
 /** Shared ticket content — exported so SilentPrintTicket can reuse it */
-export function TicketContent({ order, menuItems, modifiers: modifierList }: {
+export function TicketContent({ order, menuItems, modifiers: modifierList, printSource }: {
   order: KDSOrder;
   menuItems: MenuDisplayItem[];
   modifiers: ModifierDisplayItem[];
+  /** "auto" = autoPrint on IN_PROGRESS, "manual" = printer icon click. undefined = on-screen modal (no print footer) */
+  printSource?: 'auto' | 'manual';
 }) {
   // Collect server-alert items/modifiers as "count → label" map
   const alertMap = new Map<string, number>();
@@ -176,6 +178,13 @@ export function TicketContent({ order, menuItems, modifiers: modifierList }: {
           <hr className="border-black my-2" />
           <p className="font-bold text-gray-500">DELIVERY: {order.deliveryNote}</p>
         </>
+      )}
+
+      {/* ── Print provenance footer (auto/manual + 시각) — 진단용. 화면 모달엔 표시 안 함 ── */}
+      {printSource && (
+        <div className="text-[10px] text-center text-gray-500 mt-2">
+          Printed at {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} · {printSource}
+        </div>
       )}
     </div>
   );

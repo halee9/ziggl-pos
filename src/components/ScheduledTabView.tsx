@@ -6,7 +6,7 @@ interface Props {
   orders: KDSOrder[];
   now: number;
   scheduledActivationMinutes: number;
-  onUpdateStatus: (orderId: string, status: KDSOrder['status']) => void;
+  onUpdateStatus: (orderId: string, status: KDSOrder['status'], intent?: 'revert') => void;
   onPrint: (order: KDSOrder) => void;
 }
 

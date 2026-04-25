@@ -32,11 +32,12 @@ import {
   ArrowRight, Undo2, Flag, AlertTriangle,
   FileText, Camera, QrCode, Upload, X,
 } from 'lucide-react';
+import RevertConfirmDialog, { type RevertRequest } from './RevertConfirmDialog';
 
 interface Props {
   order: KDSOrder | null;
   onClose: () => void;
-  onStatusChange: (orderId: string, status: OrderStatus) => Promise<void>;
+  onStatusChange: (orderId: string, status: OrderStatus, intent?: 'revert') => Promise<void>;
   onRefund?: (orderId: string) => Promise<void>;
   onDelete?: (orderId: string) => Promise<void>;
   allowDirectStatus?: boolean;
@@ -354,6 +355,7 @@ export default function OrderDetailPanel({ order: orderProp, onClose, onStatusCh
   const [pinError, setPinError] = useState('');
   const [pinVerified, setPinVerified] = useState(false);
   const [verifyingPin, setVerifyingPin] = useState(false);
+  const [revertRequest, setRevertRequest] = useState<RevertRequest | null>(null);
   const restaurantCode = useSessionStore((s) => s.restaurantCode);
   const currentRole = useSessionStore((s) => s.role);
 
@@ -479,7 +481,27 @@ export default function OrderDetailPanel({ order: orderProp, onClose, onStatusCh
             <div className="flex gap-2 mb-4 flex-wrap items-center">
               <Select
                 value={order.status}
-                onValueChange={(v) => onStatusChange(order.id, v as OrderStatus)}
+                onValueChange={(v) => {
+                  const newStatus = v as OrderStatus;
+                  if (newStatus === order.status) return;
+                  // RANK 비교로 backward / CANCELED는 confirm
+                  const STATUS_RANK: Record<OrderStatus, number> = {
+                    PENDING_PAYMENT: 0, OPEN: 1, IN_PROGRESS: 2, READY: 3, COMPLETED: 4, CANCELED: 99,
+                  };
+                  const currentRank = STATUS_RANK[order.status] ?? 0;
+                  const newRank = STATUS_RANK[newStatus] ?? 0;
+                  const isBackward = newRank < currentRank;
+                  if (isBackward) {
+                    setRevertRequest({
+                      displayId: order.displayId,
+                      from: order.status,
+                      to: newStatus,
+                      onConfirm: () => onStatusChange(order.id, newStatus, 'revert'),
+                    });
+                    return;
+                  }
+                  onStatusChange(order.id, newStatus);
+                }}
               >
                 <SelectTrigger className="h-8 w-[160px] text-sm">
                   <SelectValue />
@@ -794,6 +816,7 @@ export default function OrderDetailPanel({ order: orderProp, onClose, onStatusCh
           ID: {order.id}
         </div>
       </SheetContent>
+      <RevertConfirmDialog request={revertRequest} onClose={() => setRevertRequest(null)} />
     </Sheet>
   );
 }
